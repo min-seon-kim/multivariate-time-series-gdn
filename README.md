@@ -5,16 +5,11 @@ Code implementation for : [Graph Neural Network-Based Anomaly Detection in Multi
 
 # Installation
 ### Requirements
-* Python >= 3.6
-* cuda == 10.2
-* [Pytorch==1.5.1](https://pytorch.org/)
-* [PyG: torch-geometric==1.5.0](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html)
+* Python == 3.12.3
+* cuda == 12.6
+* torch == 2.5.0
+* torch-geometric == 2.6.1
 
-### Install packages
-```
-    # run after installing correct Pytorch package
-    bash install.sh
-```
 
 ### Quick Start
 Run to check if the environment is ready
