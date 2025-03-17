@@ -4,8 +4,8 @@ logs/
 runs/
 temp/
 pretrained/
-data/wadi
-data/swat
+data/wadi/
+data/swat/
 scripts/*.csv
 run_copy.sh
 myenv/
