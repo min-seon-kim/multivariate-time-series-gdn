@@ -1,0 +1,11 @@
+pretrained/
+results/
+logs/
+runs/
+temp/
+pretrained/
+data/wadi/train.csv
+scripts/*.csv
+run_copy.sh
+myenv/
+__pycache__
