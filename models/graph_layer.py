@@ -65,6 +65,25 @@ class GraphLayer(MessagePassing):
 
         out = self.propagate(edge_index, x=x, embedding=embedding, edges=edge_index,
                              return_attention_weights=return_attention_weights)
+        
+        ##################################################################################################
+        x_T = x.permute(0, 2, 1)
+
+        from models.GDN import get_batch_edge_index
+        batch_num, all_feature, node_num = x_T.shape
+        
+        source = torch.arange(all_feature).repeat_interleave(all_feature)
+        target = torch.arange(all_feature).repeat(all_feature)
+        gated_edge_index = torch.stack([source, target], dim=0)
+        gated_edge_index = gated_edge_index.to('cuda')
+
+        time_edge_index = get_batch_edge_index(gated_edge_index, batch_num, node_num).to('cuda')
+
+        self.message = self.temporal_message.__get__(self)
+        out2 = self.propagate(time_edge_index, x=x_T, edges=time_edge_index, return_attention_weights=return_attention_weights)
+        
+        out = out + out2
+        ##################################################################################################
 
         if self.concat:
             out = out.view(-1, self.heads * self.out_channels)
@@ -79,6 +98,14 @@ class GraphLayer(MessagePassing):
             return out, (edge_index, alpha)
         else:
             return out
+
+    def temporal_message(self, x_i, x_j, edge_index_i, size_i, return_attention_weights, **kwargs):
+        alpha = (x_i * x_j).sum(-1, keepdim=True)
+        alpha = F.leaky_relu(alpha, self.negative_slope)
+        alpha = softmax(alpha, edge_index_i, num_nodes=size_i)
+        alpha = F.dropout(alpha, p=self.dropout, training=self.training)
+        return x_j * alpha
+
 
     def message(self, x_i, x_j, edge_index_i, size_i,
                 embedding,
