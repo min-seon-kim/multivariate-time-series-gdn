@@ -68,19 +68,49 @@ class GNNLayer(nn.Module):
         self.relu = nn.ReLU()
         self.leaky_relu = nn.LeakyReLU()
 
-    def forward(self, x, edge_index, embedding=None, node_num=0):
+    def forward(self, x, edge_index, embedding=None, temporal_x=None, time_edge_index=None, model_type=None, node_num=0):
 
         out, (new_edge_index, att_weight) = self.gnn(x, edge_index, embedding, return_attention_weights=True)
         self.att_weight_1 = att_weight
         self.edge_index_1 = new_edge_index
   
+        # 2️⃣ Temporal GNN
+        if model_type == 'STGDN':
+            if temporal_x is not None and time_edge_index is not None:
+                original_message = self.gnn.message  # backup
+
+                # monkey-patch to use temporal_message
+                original_bias = self.gnn.bias
+                self.gnn.bias = None
+                self.gnn.message = self.gnn.temporal_message.__get__(self.gnn)
+
+                temporal_out = self.gnn(
+                    temporal_x, time_edge_index,
+                    embedding=None,
+                    return_attention_weights=False
+                )
+
+                # restore original message function
+                self.gnn.message = original_message
+                self.gnn.bias = original_bias
+
+                # 3️⃣ Combine: z_i^(t) = ReLU(spatial + temporal)
+                # print(out.shape, temporal_out.shape)
+                temporal_out = temporal_out.unsqueeze(-1)
+                # print(out.shape, temporal_out.shape)
+                out = F.relu(out + temporal_out)
+            else:
+                out = F.relu(out)
+        else:
+            raise ValueError("Choose model_type between [GDN/STGDN]")
+
         out = self.bn(out)
         
         return self.relu(out)
 
 
 class GDN(nn.Module):
-    def __init__(self, edge_index_sets, node_num, dim=64, out_layer_inter_dim=256, input_dim=10, out_layer_num=1, topk=20):
+    def __init__(self, edge_index_sets, node_num, dim=64, out_layer_inter_dim=256, input_dim=10, out_layer_num=1, topk=20, model_type='GDN'):
 
         super(GDN, self).__init__()
 
@@ -104,6 +134,8 @@ class GDN(nn.Module):
 
         self.node_embedding = None
         self.topk = topk
+        self.model_type = model_type
+
         self.learned_graph = None
 
         self.out_layer = OutLayer(dim*edge_set_num, node_num, out_layer_num, inter_num = out_layer_inter_dim)
@@ -119,6 +151,12 @@ class GDN(nn.Module):
         nn.init.kaiming_uniform_(self.embedding.weight, a=math.sqrt(5))
 
 
+    def get_time_full_edge_index(self, time_len, device=None):
+        source = torch.arange(time_len).repeat_interleave(time_len)
+        target = torch.arange(time_len).repeat(time_len)
+        edge_index = torch.stack([source, target], dim=0)
+        return edge_index.to(device) if device else edge_index
+
     def forward(self, data, org_edge_index):
 
         x = data.clone().detach()
@@ -129,6 +167,8 @@ class GDN(nn.Module):
         batch_num, node_num, all_feature = x.shape
         x = x.view(-1, all_feature).contiguous()
 
+        temporal_x = x  # ✅ 그대로 temporal GNN에 입력으로 넘김
+        time_edge_index = self.get_time_full_edge_index(all_feature, device=device)  # (2, T*T)
 
         gcn_outs = []
         for i, edge_index in enumerate(edge_index_sets):
@@ -163,7 +203,7 @@ class GDN(nn.Module):
             gated_edge_index = torch.cat((gated_j, gated_i), dim=0)
 
             batch_gated_edge_index = get_batch_edge_index(gated_edge_index, batch_num, node_num).to(device)
-            gcn_out = self.gnn_layers[i](x, batch_gated_edge_index, node_num=node_num*batch_num, embedding=all_embeddings)
+            gcn_out = self.gnn_layers[i](x, batch_gated_edge_index, node_num=node_num*batch_num, embedding=all_embeddings, temporal_x=temporal_x, time_edge_index=time_edge_index, model_type=self.model_type)
 
             
             gcn_outs.append(gcn_out)

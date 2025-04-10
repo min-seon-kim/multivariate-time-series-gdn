@@ -1,5 +1,6 @@
 gpu_n=$1
 DATASET=$2
+MODEL=$3
 
 seed=42
 BATCH_SIZE=32
@@ -47,6 +48,7 @@ if [[ "$gpu_n" == "cpu" ]]; then
         -val_ratio $val_ratio \
         -report $report \
         -topk $topk \
+        -model_type $MODEL \
         -device 'cpu'
 else
     CUDA_VISIBLE_DEVICES=$gpu_n  python main.py \
@@ -65,5 +67,6 @@ else
         -decay $decay \
         -val_ratio $val_ratio \
         -report $report \
-        -topk $topk
+        -topk $topk \
+        -model_type $MODEL \
 fi

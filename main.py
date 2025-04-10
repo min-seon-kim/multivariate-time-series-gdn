@@ -93,7 +93,8 @@ class Main():
                 input_dim=train_config['slide_win'],
                 out_layer_num=train_config['out_layer_num'],
                 out_layer_inter_dim=train_config['out_layer_inter_dim'],
-                topk=train_config['topk']
+                topk=train_config['topk'],
+                model_type=train_config['model_type']
             ).to(self.device)
 
 
@@ -170,8 +171,10 @@ class Main():
             info = top1_val_info
 
         print(f'F1 score: {info[0]}')
-        print(f'precision: {info[1]}')
-        print(f'recall: {info[2]}\n')
+        print(f'Precision: {info[1]}')
+        print(f'Recall: {info[2]}')
+        print(f'Accuracy: {info[3]}')
+        print(f'AUC: {info[4]}\n')
 
 
     def get_save_path(self, feature_name=''):
@@ -213,6 +216,7 @@ if __name__ == "__main__":
     parser.add_argument('-decay', help='decay', type = float, default=0)
     parser.add_argument('-val_ratio', help='val ratio', type = float, default=0.1)
     parser.add_argument('-topk', help='topk num', type = int, default=20)
+    parser.add_argument('-model_type', help='model type [GDN/STGDN]', type = str, default='GDN')
     parser.add_argument('-report', help='best / val', type = str, default='best')
     parser.add_argument('-load_model_path', help='trained model path', type = str, default='')
 
@@ -241,6 +245,7 @@ if __name__ == "__main__":
         'decay': args.decay,
         'val_ratio': args.val_ratio,
         'topk': args.topk,
+        'model_type': args.model_type,
     }
 
     env_config={

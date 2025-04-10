@@ -1,6 +1,6 @@
 from util.data import *
 import numpy as np
-from sklearn.metrics import precision_score, recall_score, roc_auc_score, f1_score
+from sklearn.metrics import precision_score, recall_score, roc_auc_score, f1_score, accuracy_score
 
 
 def get_full_err_scores(test_result, val_result):
@@ -117,13 +117,13 @@ def get_val_performance_data(total_err_scores, normal_scores, gt_labels, topk=1)
 
     pre = precision_score(gt_labels, pred_labels)
     rec = recall_score(gt_labels, pred_labels)
-
+    acc = accuracy_score(gt_labels, pred_labels)
     f1 = f1_score(gt_labels, pred_labels)
 
 
     auc_score = roc_auc_score(gt_labels, total_topk_err_scores)
 
-    return f1, pre, rec, auc_score, thresold
+    return f1, pre, rec, acc, auc_score, thresold
 
 
 def get_best_performance_data(total_err_scores, gt_labels, topk=1):
