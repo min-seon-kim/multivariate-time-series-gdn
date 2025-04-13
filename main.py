@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import csv
 import pandas as pd
 import numpy as np
 import torch
@@ -78,11 +79,13 @@ class Main():
         self.train_dataset = train_dataset
         self.test_dataset = test_dataset
 
+        generator = torch.Generator()
+        generator.manual_seed(train_config['seed'])
 
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
         self.test_dataloader = DataLoader(test_dataset, batch_size=train_config['batch'],
-                            shuffle=False, num_workers=0)
+                            shuffle=False, num_workers=0, generator=generator)
 
 
         edge_index_sets = []
@@ -176,6 +179,11 @@ class Main():
         print(f'Accuracy: {info[3]}')
         print(f'AUC: {info[4]}\n')
 
+        _, result_csv_path = self.get_save_path()
+        with open(result_csv_path, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['F1', 'Precision', 'Recall', 'Accuracy', 'AUC'])
+            writer.writerow([info[0], info[1], info[2], info[3], info[4]])
 
     def get_save_path(self, feature_name=''):
 
@@ -213,6 +221,8 @@ if __name__ == "__main__":
     parser.add_argument('-comment', help='experiment comment', type = str, default='')
     parser.add_argument('-out_layer_num', help='outlayer num', type = int, default=1)
     parser.add_argument('-out_layer_inter_dim', help='out_layer_inter_dim', type = int, default=256)
+    parser.add_argument('-lr', help='learning rate', type = float, default=0.001)
+    parser.add_argument('-early_stop_win', help='early stopping', type = int, default=15)
     parser.add_argument('-decay', help='decay', type = float, default=0)
     parser.add_argument('-val_ratio', help='val ratio', type = float, default=0.1)
     parser.add_argument('-topk', help='topk num', type = int, default=20)
@@ -231,6 +241,8 @@ if __name__ == "__main__":
     torch.backends.cudnn.deterministic = True
     os.environ['PYTHONHASHSEED'] = str(args.random_seed)
 
+    os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
+    torch.use_deterministic_algorithms(True)
 
     train_config = {
         'batch': args.batch,
@@ -242,6 +254,8 @@ if __name__ == "__main__":
         'seed': args.random_seed,
         'out_layer_num': args.out_layer_num,
         'out_layer_inter_dim': args.out_layer_inter_dim,
+        'lr': args.lr,
+        'early_stop_win': args.early_stop_win,
         'decay': args.decay,
         'val_ratio': args.val_ratio,
         'topk': args.topk,

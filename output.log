@@ -1,0 +1,130 @@
+nohup: ignoring input
+Running seed 1...
+Running seed 2...
+Running seed 4...
+Running seed 3...
+/home/mskim2/GDN/models/GDN.py:207: UserWarning: The use of `x.T` on tensors of dimension other than 2 to reverse their shape is deprecated and it will throw an error in a future release. Consider `x.mT` to transpose batches of matrices or `x.permute(*torch.arange(x.ndim - 1, -1, -1))` to reverse the dimensions of a tensor. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3683.)
+  gated_i = torch.arange(0, node_num).T.unsqueeze(1).repeat(1, topk_num).flatten().to(device).unsqueeze(0)
+/home/mskim2/GDN/models/GDN.py:207: UserWarning: The use of `x.T` on tensors of dimension other than 2 to reverse their shape is deprecated and it will throw an error in a future release. Consider `x.mT` to transpose batches of matrices or `x.permute(*torch.arange(x.ndim - 1, -1, -1))` to reverse the dimensions of a tensor. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3683.)
+  gated_i = torch.arange(0, node_num).T.unsqueeze(1).repeat(1, topk_num).flatten().to(device).unsqueeze(0)
+/home/mskim2/GDN/models/GDN.py:207: UserWarning: The use of `x.T` on tensors of dimension other than 2 to reverse their shape is deprecated and it will throw an error in a future release. Consider `x.mT` to transpose batches of matrices or `x.permute(*torch.arange(x.ndim - 1, -1, -1))` to reverse the dimensions of a tensor. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3683.)
+  gated_i = torch.arange(0, node_num).T.unsqueeze(1).repeat(1, topk_num).flatten().to(device).unsqueeze(0)
+/home/mskim2/GDN/models/GDN.py:207: UserWarning: The use of `x.T` on tensors of dimension other than 2 to reverse their shape is deprecated and it will throw an error in a future release. Consider `x.mT` to transpose batches of matrices or `x.permute(*torch.arange(x.ndim - 1, -1, -1))` to reverse the dimensions of a tensor. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3683.)
+  gated_i = torch.arange(0, node_num).T.unsqueeze(1).repeat(1, topk_num).flatten().to(device).unsqueeze(0)
+epoch (0 / 50) (Loss:0.01013495, ACU_loss:19.88477745)
+epoch (0 / 50) (Loss:0.00993541, ACU_loss:19.49326616)
+epoch (0 / 50) (Loss:0.01073754, ACU_loss:21.06704438)
+epoch (0 / 50) (Loss:0.01141172, ACU_loss:22.38979395)
+epoch (1 / 50) (Loss:0.00582797, ACU_loss:11.43448481)
+epoch (1 / 50) (Loss:0.00606451, ACU_loss:11.89855942)
+epoch (1 / 50) (Loss:0.00471947, ACU_loss:9.25960980)
+epoch (1 / 50) (Loss:0.00493428, ACU_loss:9.68106553)
+epoch (2 / 50) (Loss:0.00601150, ACU_loss:11.79455522)
+epoch (2 / 50) (Loss:0.00596551, ACU_loss:11.70432766)
+epoch (2 / 50) (Loss:0.00448249, ACU_loss:8.79464824)
+epoch (2 / 50) (Loss:0.00524873, ACU_loss:10.29801190)
+epoch (3 / 50) (Loss:0.00581335, ACU_loss:11.40579273)
+epoch (3 / 50) (Loss:0.00613477, ACU_loss:12.03641836)
+epoch (3 / 50) (Loss:0.00440936, ACU_loss:8.65115497)
+epoch (3 / 50) (Loss:0.00628437, ACU_loss:12.32993970)
+epoch (4 / 50) (Loss:0.00587617, ACU_loss:11.52904311)
+epoch (4 / 50) (Loss:0.00602874, ACU_loss:11.82837901)
+epoch (4 / 50) (Loss:0.00591731, ACU_loss:11.60976328)
+epoch (4 / 50) (Loss:0.00628273, ACU_loss:12.32672200)
+epoch (5 / 50) (Loss:0.00605247, ACU_loss:11.87493836)
+epoch (5 / 50) (Loss:0.00610148, ACU_loss:11.97111138)
+epoch (5 / 50) (Loss:0.00573454, ACU_loss:11.25116411)
+epoch (5 / 50) (Loss:0.00625758, ACU_loss:12.27737109)
+epoch (6 / 50) (Loss:0.00612028, ACU_loss:12.00799770)
+epoch (6 / 50) (Loss:0.00576057, ACU_loss:11.30224593)
+epoch (6 / 50) (Loss:0.00576840, ACU_loss:11.31760973)
+epoch (6 / 50) (Loss:0.00621113, ACU_loss:12.18624470)
+epoch (7 / 50) (Loss:0.00616512, ACU_loss:12.09596385)
+epoch (7 / 50) (Loss:0.00604435, ACU_loss:11.85900701)
+epoch (7 / 50) (Loss:0.00572627, ACU_loss:11.23494961)
+epoch (7 / 50) (Loss:0.00630316, ACU_loss:12.36680474)
+epoch (8 / 50) (Loss:0.00625274, ACU_loss:12.26788240)
+epoch (8 / 50) (Loss:0.00578031, ACU_loss:11.34097292)
+epoch (8 / 50) (Loss:0.00631413, ACU_loss:12.38832790)
+epoch (8 / 50) (Loss:0.00631889, ACU_loss:12.39765867)
+epoch (9 / 50) (Loss:0.00617261, ACU_loss:12.11066260)
+epoch (9 / 50) (Loss:0.00591782, ACU_loss:11.61075799)
+epoch (9 / 50) (Loss:0.00631509, ACU_loss:12.39019995)
+epoch (9 / 50) (Loss:0.00643859, ACU_loss:12.63250603)
+epoch (10 / 50) (Loss:0.00625918, ACU_loss:12.28051261)
+epoch (10 / 50) (Loss:0.00620187, ACU_loss:12.16806820)
+epoch (10 / 50) (Loss:0.00571540, ACU_loss:11.21361243)
+epoch (10 / 50) (Loss:0.00652896, ACU_loss:12.80981824)
+/home/mskim2/GDN/main.py:124: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.model.load_state_dict(torch.load(model_save_path))
+=========================** Result **============================
+
+F1 score: 0.1766848816029144
+Precision: 0.9603960396039604
+Recall: 0.09729187562688064
+Accuracy: 0.9476700434153401
+AUC: 0.6037284972006571
+
+epoch (11 / 50) (Loss:0.00579076, ACU_loss:11.36147919)
+epoch (11 / 50) (Loss:0.00650050, ACU_loss:12.75397948)
+epoch (11 / 50) (Loss:0.00636896, ACU_loss:12.49590445)
+/home/mskim2/GDN/main.py:124: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.model.load_state_dict(torch.load(model_save_path))
+=========================** Result **============================
+
+F1 score: 0.26356589147286824
+Precision: 0.9329268292682927
+Recall: 0.1534603811434303
+Accuracy: 0.950506512301013
+AUC: 0.6982063033923
+
+epoch (12 / 50) (Loss:0.00579894, ACU_loss:11.37751092)
+epoch (12 / 50) (Loss:0.00628461, ACU_loss:12.33040482)
+epoch (13 / 50) (Loss:0.00594752, ACU_loss:11.66902751)
+epoch (13 / 50) (Loss:0.00634048, ACU_loss:12.44003116)
+/home/mskim2/GDN/main.py:124: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.model.load_state_dict(torch.load(model_save_path))
+=========================** Result **============================
+
+F1 score: 0.25476603119584057
+Precision: 0.9363057324840764
+Recall: 0.14744232698094284
+Accuracy: 0.9502170767004342
+AUC: 0.6489496133073012
+
+epoch (14 / 50) (Loss:0.00631805, ACU_loss:12.39601283)
+epoch (15 / 50) (Loss:0.00622201, ACU_loss:12.20757467)
+/home/mskim2/GDN/main.py:124: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.model.load_state_dict(torch.load(model_save_path))
+=========================** Result **============================
+
+F1 score: 0.28665568369028005
+Precision: 0.8018433179723502
+Recall: 0.17452357071213642
+Accuracy: 0.9498697539797395
+AUC: 0.7256420323755391
+
+Running seed 5...
+Running seed 6...
+Running seed 7...
+Running seed 8...
+/home/mskim2/GDN/models/GDN.py:207: UserWarning: The use of `x.T` on tensors of dimension other than 2 to reverse their shape is deprecated and it will throw an error in a future release. Consider `x.mT` to transpose batches of matrices or `x.permute(*torch.arange(x.ndim - 1, -1, -1))` to reverse the dimensions of a tensor. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3683.)
+  gated_i = torch.arange(0, node_num).T.unsqueeze(1).repeat(1, topk_num).flatten().to(device).unsqueeze(0)
+/home/mskim2/GDN/models/GDN.py:207: UserWarning: The use of `x.T` on tensors of dimension other than 2 to reverse their shape is deprecated and it will throw an error in a future release. Consider `x.mT` to transpose batches of matrices or `x.permute(*torch.arange(x.ndim - 1, -1, -1))` to reverse the dimensions of a tensor. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3683.)
+  gated_i = torch.arange(0, node_num).T.unsqueeze(1).repeat(1, topk_num).flatten().to(device).unsqueeze(0)
+/home/mskim2/GDN/models/GDN.py:207: UserWarning: The use of `x.T` on tensors of dimension other than 2 to reverse their shape is deprecated and it will throw an error in a future release. Consider `x.mT` to transpose batches of matrices or `x.permute(*torch.arange(x.ndim - 1, -1, -1))` to reverse the dimensions of a tensor. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3683.)
+  gated_i = torch.arange(0, node_num).T.unsqueeze(1).repeat(1, topk_num).flatten().to(device).unsqueeze(0)
+/home/mskim2/GDN/models/GDN.py:207: UserWarning: The use of `x.T` on tensors of dimension other than 2 to reverse their shape is deprecated and it will throw an error in a future release. Consider `x.mT` to transpose batches of matrices or `x.permute(*torch.arange(x.ndim - 1, -1, -1))` to reverse the dimensions of a tensor. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3683.)
+  gated_i = torch.arange(0, node_num).T.unsqueeze(1).repeat(1, topk_num).flatten().to(device).unsqueeze(0)
+epoch (0 / 50) (Loss:0.01015874, ACU_loss:19.93144995)
+epoch (0 / 50) (Loss:0.01082377, ACU_loss:21.23623624)
+epoch (0 / 50) (Loss:0.01178051, ACU_loss:23.11336251)
+epoch (0 / 50) (Loss:0.01253520, ACU_loss:24.59406440)
+epoch (1 / 50) (Loss:0.00493201, ACU_loss:9.67661062)
+epoch (1 / 50) (Loss:0.00609150, ACU_loss:11.95152010)
+epoch (1 / 50) (Loss:0.00503534, ACU_loss:9.87934480)
+epoch (1 / 50) (Loss:0.00566851, ACU_loss:11.12161570)
+epoch (2 / 50) (Loss:0.00462249, ACU_loss:9.06932986)
+epoch (2 / 50) (Loss:0.00637670, ACU_loss:12.51108277)
+epoch (2 / 50) (Loss:0.00536775, ACU_loss:10.53153310)
+epoch (2 / 50) (Loss:0.00456660, ACU_loss:8.95966876)

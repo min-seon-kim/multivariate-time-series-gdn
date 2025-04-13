@@ -62,47 +62,49 @@ class GNNLayer(nn.Module):
         super(GNNLayer, self).__init__()
 
 
-        self.gnn = GraphLayer(in_channel, out_channel, inter_dim=inter_dim, heads=heads, concat=False)
-
+        self.gnn = GraphLayer(in_channel, out_channel, node_num, inter_dim=inter_dim, heads=heads, concat=False)
+        
         self.bn = nn.BatchNorm1d(out_channel)
         self.relu = nn.ReLU()
         self.leaky_relu = nn.LeakyReLU()
 
-    def forward(self, x, edge_index, embedding=None, temporal_x=None, time_edge_index=None, model_type=None, node_num=0):
-
-        out, (new_edge_index, att_weight) = self.gnn(x, edge_index, embedding, return_attention_weights=True)
+    def forward(self, x, edge_index, embedding=None, temporal_x=None, time_edge_index=None, model_type=None, node_num=0, all_feature=0, batch_num=0):
+        # print("x.shape", x.shape)
+        # print("edge_index.shape", edge_index.shape)
+        out, (new_edge_index, att_weight) = self.gnn(x, edge_index, embedding, return_attention_weights=True, spatial=True)
         self.att_weight_1 = att_weight
         self.edge_index_1 = new_edge_index
   
-        # 2️⃣ Temporal GNN
         if model_type == 'STGDN':
             if temporal_x is not None and time_edge_index is not None:
-                original_message = self.gnn.message  # backup
-
-                # monkey-patch to use temporal_message
-                original_bias = self.gnn.bias
-                self.gnn.bias = None
-                self.gnn.message = self.gnn.temporal_message.__get__(self.gnn)
-
+                # print("temporal_x.shape", temporal_x.shape)
+                # print("time_edge_index.shape", time_edge_index.shape)
                 temporal_out = self.gnn(
                     temporal_x, time_edge_index,
                     embedding=None,
-                    return_attention_weights=False
+                    return_attention_weights=False,
+                    spatial=False
                 )
 
-                # restore original message function
-                self.gnn.message = original_message
-                self.gnn.bias = original_bias
+                # Combine: z_i^(t) = ReLU(spatial + temporal)
+                # temporal_out을 여기서 time_window의 길이 만큼 묶고, 총 (batch_num, d) 차원만큼 나와야함
+                # 그리고 이걸 out에 더할때는 배치 단위로 동일하게 여러개 만들어서 차원 맞추어서 더하기
+                # print(out.shape, temporal_out.shape) # torch.Size([1632, 64]) torch.Size([160, 64])
+                node_num = temporal_x.size(-1)
+                all_feature = int(time_edge_index.size(-1)/temporal_x.size(0))
+                batch_num = int(temporal_out.size(0)/all_feature)
+                d = temporal_out.size(-1)
 
-                # 3️⃣ Combine: z_i^(t) = ReLU(spatial + temporal)
-                # print(out.shape, temporal_out.shape)
-                temporal_out = temporal_out.unsqueeze(-1)
-                # print(out.shape, temporal_out.shape)
+                temporal_out = temporal_out.view(batch_num, all_feature, d).mean(dim=1)
+                # print(temporal_out.shape)
+                temporal_out = temporal_out.unsqueeze(1).repeat(1, node_num, 1).view(batch_num * node_num, d)
+                # print(out.shape, temporal_out.shape) # torch.Size([1632, 64]) torch.Size([160, 64])
                 out = F.relu(out + temporal_out)
             else:
                 out = F.relu(out)
         else:
-            raise ValueError("Choose model_type between [GDN/STGDN]")
+            if model_type != 'GDN':
+                raise ValueError("Choose model_type between [GDN/STGDN]")
 
         out = self.bn(out)
         
@@ -128,7 +130,7 @@ class GDN(nn.Module):
 
         edge_set_num = len(edge_index_sets)
         self.gnn_layers = nn.ModuleList([
-            GNNLayer(input_dim, dim, inter_dim=dim+embed_dim, heads=1) for i in range(edge_set_num)
+            GNNLayer(input_dim, dim, inter_dim=dim+embed_dim, heads=1, node_num=node_num) for i in range(edge_set_num)
         ])
 
 
@@ -150,13 +152,6 @@ class GDN(nn.Module):
     def init_params(self):
         nn.init.kaiming_uniform_(self.embedding.weight, a=math.sqrt(5))
 
-
-    def get_time_full_edge_index(self, time_len, device=None):
-        source = torch.arange(time_len).repeat_interleave(time_len)
-        target = torch.arange(time_len).repeat(time_len)
-        edge_index = torch.stack([source, target], dim=0)
-        return edge_index.to(device) if device else edge_index
-
     def forward(self, data, org_edge_index):
 
         x = data.clone().detach()
@@ -165,10 +160,21 @@ class GDN(nn.Module):
         device = data.device
 
         batch_num, node_num, all_feature = x.shape
+        # print("batch num", batch_num, "node num", node_num, "time window", all_feature)
         x = x.view(-1, all_feature).contiguous()
+        ###############################################################################
+        temporal_x = data.clone().detach()
+        temporal_x = temporal_x.permute(0, 2, 1)
+        temporal_x = temporal_x.reshape(-1, node_num)
 
-        temporal_x = x  # ✅ 그대로 temporal GNN에 입력으로 넘김
-        time_edge_index = self.get_time_full_edge_index(all_feature, device=device)  # (2, T*T)
+        source = torch.arange(all_feature).repeat_interleave(all_feature)
+        target = torch.arange(all_feature).repeat(all_feature)
+        gated_edge_index = torch.stack([source, target], dim=0)
+        gated_edge_index = gated_edge_index.to(device)
+
+        time_edge_index = get_batch_edge_index(gated_edge_index, batch_num, all_feature).to(device)
+        # print("time edge index:", time_edge_index.shape)
+        ###############################################################################
 
         gcn_outs = []
         for i, edge_index in enumerate(edge_index_sets):
@@ -203,6 +209,7 @@ class GDN(nn.Module):
             gated_edge_index = torch.cat((gated_j, gated_i), dim=0)
 
             batch_gated_edge_index = get_batch_edge_index(gated_edge_index, batch_num, node_num).to(device)
+            # print("batch_gated_edge_index:", batch_gated_edge_index.shape)
             gcn_out = self.gnn_layers[i](x, batch_gated_edge_index, node_num=node_num*batch_num, embedding=all_embeddings, temporal_x=temporal_x, time_edge_index=time_edge_index, model_type=self.model_type)
 
             

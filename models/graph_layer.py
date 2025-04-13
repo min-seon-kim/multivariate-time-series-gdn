@@ -10,7 +10,7 @@ import math
 import torch.nn.init as init
 
 class GraphLayer(MessagePassing):
-    def __init__(self, in_channels, out_channels, heads=1, concat=True,
+    def __init__(self, in_channels, out_channels, node_num, heads=1, concat=True,
                  negative_slope=0.2, dropout=0, bias=True, inter_dim=-1,**kwargs):
         super(GraphLayer, self).__init__(aggr='add', **kwargs)
 
@@ -25,14 +25,14 @@ class GraphLayer(MessagePassing):
         self.__alpha__ = None
 
         self.lin = Linear(in_channels, heads * out_channels, bias=False)
-
         self.att_i = Parameter(torch.Tensor(1, heads, out_channels))
         self.att_j = Parameter(torch.Tensor(1, heads, out_channels))
         self.att_em_i = Parameter(torch.Tensor(1, heads, out_channels))
         self.att_em_j = Parameter(torch.Tensor(1, heads, out_channels))
 
-        # 🔹 Temporal attention vector W' (for x_t || x_t′)
-        self.temporal_att_vector = Parameter(torch.Tensor(2 * out_channels))
+        self.temp_att_i = Parameter(torch.Tensor(1, heads, out_channels))
+        self.temp_att_j = Parameter(torch.Tensor(1, heads, out_channels))
+        self.temporal_proj = Linear(node_num, heads * out_channels, bias=False)
 
         if bias and concat:
             self.bias = Parameter(torch.Tensor(heads * out_channels))
@@ -47,7 +47,10 @@ class GraphLayer(MessagePassing):
         glorot(self.lin.weight)
         glorot(self.att_i)
         glorot(self.att_j)
-        init.uniform_(self.temporal_att_vector, -0.1, 0.1)  # 🔹 초기화 추가
+        glorot(self.temporal_proj.weight)
+
+        glorot(self.temp_att_i)
+        glorot(self.temp_att_j)
 
         zeros(self.att_em_i)
         zeros(self.att_em_j)
@@ -56,14 +59,20 @@ class GraphLayer(MessagePassing):
 
 
 
-    def forward(self, x, edge_index, embedding, return_attention_weights=False):
-        """"""
-        if torch.is_tensor(x):
-            x = self.lin(x)
-            x = (x, x)
+    def forward(self, x, edge_index, embedding, return_attention_weights=False, spatial=False):
+        if spatial == True:
+            if torch.is_tensor(x):
+                x = self.lin(x)
+                x = (x, x)
+            else:
+                x = (self.lin(x[0]), self.lin(x[1]))
         else:
-            x = (self.lin(x[0]), self.lin(x[1]))
-
+            if torch.is_tensor(x):
+                x = self.temporal_proj(x)
+                x = (x, x)
+            else:
+                x = (self.temporal_proj(x[0]), self.temporal_proj(x[1]))
+        
         edge_index, _ = remove_self_loops(edge_index)
         edge_index, _ = add_self_loops(edge_index,
                                        num_nodes=x[1].size(self.node_dim))
@@ -86,24 +95,11 @@ class GraphLayer(MessagePassing):
             return out
 
 
-    # 🔹 Temporal message function (x_t || x_t′ style)
-    def temporal_message(self, x_i, x_j, edge_index_i, size_i, return_attention_weights=False, **kwargs):
-        x_i = x_i.view(-1, self.out_channels)  # no heads
-        x_j = x_j.view(-1, self.out_channels)
-        pair = torch.cat([x_i, x_j], dim=-1)  # shape: (num_edges, 2*out_channels)
-
-        e = F.leaky_relu(pair @ self.temporal_att_vector, self.negative_slope)  # (num_edges,)
-        alpha = softmax(e, edge_index_i, num_nodes=size_i)
-        alpha = F.dropout(alpha, p=self.dropout, training=self.training)
-
-        return x_j * alpha.unsqueeze(-1)  # shape: (num_edges, F)
-
-
     def message(self, x_i, x_j, edge_index_i, size_i,
                 embedding,
                 edges,
                 return_attention_weights):
-
+        
         x_i = x_i.view(-1, self.heads, self.out_channels)
         x_j = x_j.view(-1, self.heads, self.out_channels)
 
@@ -112,21 +108,28 @@ class GraphLayer(MessagePassing):
             embedding_i = embedding_i.unsqueeze(1).repeat(1,self.heads,1)
             embedding_j = embedding_j.unsqueeze(1).repeat(1,self.heads,1)
 
+            # 논문에서의 g_i^(t)
             key_i = torch.cat((x_i, embedding_i), dim=-1)
             key_j = torch.cat((x_j, embedding_j), dim=-1)
+        else:
+            key_i = x_i
+            key_j = x_j
 
+        if embedding is not None:
+            # Attention score를 계산하는 식, 논문에서의 a^T 는 self.att_i, self.att_j
+            cat_att_i = torch.cat((self.att_i, self.att_em_i), dim=-1)
+            cat_att_j = torch.cat((self.att_j, self.att_em_j), dim=-1)
+        else:
+            cat_att_i = self.temp_att_i
+            cat_att_j = self.temp_att_j
 
-
-        cat_att_i = torch.cat((self.att_i, self.att_em_i), dim=-1)
-        cat_att_j = torch.cat((self.att_j, self.att_em_j), dim=-1)
-
+        # Relu 전 z_i^(t)
         alpha = (key_i * cat_att_i).sum(-1) + (key_j * cat_att_j).sum(-1)
-
 
         alpha = alpha.view(-1, self.heads, 1)
 
-
         alpha = F.leaky_relu(alpha, self.negative_slope)
+        # print("size_i", size_i)
         alpha = softmax(alpha, edge_index_i, num_nodes=size_i)
 
         if return_attention_weights:

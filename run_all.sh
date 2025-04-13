@@ -1,8 +1,9 @@
-gpu_n=$1
+#!/bin/bash
+GPU=$1
 DATASET=$2
 MODEL=$3
+MAX_PARALLEL=4
 
-seed=42
 BATCH_SIZE=32
 SLIDE_WIN=5
 dim=64
@@ -15,7 +16,6 @@ decay=1e-4
 lr=0.001
 early_stop_win=10
 
-path_pattern="${DATASET}"
 COMMENT="${DATASET}"
 
 if [ "$DATASET" == "wadi" ]; then
@@ -28,34 +28,20 @@ elif [ "$DATASET" == "swat" ]; then
     out_layer_inter_dim=64
 fi
 
+OUT_DIR="./results/${DATASET}_${MODEL}_seeds"
+mkdir -p $OUT_DIR
+
 EPOCH=50
 report='val'
 
-if [[ "$gpu_n" == "cpu" ]]; then
-    python main.py \
+pids=()
+for seed in $(seq 1 42); do
+    (
+    echo "Running seed $seed..."
+
+    CUDA_VISIBLE_DEVICES=$GPU python main.py \
         -dataset $DATASET \
-        -save_path_pattern $path_pattern \
-        -slide_stride $SLIDE_STRIDE \
-        -slide_win $SLIDE_WIN \
-        -batch $BATCH_SIZE \
-        -epoch $EPOCH \
-        -comment $COMMENT \
-        -random_seed $seed \
-        -lr $lr \
-        -early_stop_win $early_stop_win \
-        -decay $decay \
-        -dim $dim \
-        -out_layer_num $out_layer_num \
-        -out_layer_inter_dim $out_layer_inter_dim \
-        -val_ratio $val_ratio \
-        -report $report \
-        -topk $topk \
-        -model_type $MODEL \
-        -device 'cpu'
-else
-    CUDA_VISIBLE_DEVICES=$gpu_n python main.py \
-        -dataset $DATASET \
-        -save_path_pattern $path_pattern \
+        -save_path_pattern "${DATASET}_${MODEL}_seed${seed}" \
         -slide_stride $SLIDE_STRIDE \
         -slide_win $SLIDE_WIN \
         -batch $BATCH_SIZE \
@@ -72,4 +58,28 @@ else
         -report $report \
         -topk $topk \
         -model_type $MODEL
-fi
+
+    RESULT_DIR="./results/${DATASET}_${MODEL}_seed${seed}"
+    LATEST_CSV=$(ls -t $RESULT_DIR/*.csv 2>/dev/null | head -n 1)
+
+    if [ $seed -eq 1 ]; then
+        echo "seed,F1,Precision,Recall,Accuracy,AUC" > $OUT_DIR/summary.csv
+    fi
+
+    if [ -f "$LATEST_CSV" ]; then
+        result_line=$(tail -n 1 "$LATEST_CSV")
+        echo "$seed,$result_line" >> $OUT_DIR/summary.csv
+    else
+        echo "$seed,N/A,N/A,N/A,N/A,N/A" >> $OUT_DIR/summary.csv
+    fi
+    ) &
+
+    pids+=($!)
+
+    if [[ $((${#pids[@]} % $MAX_PARALLEL)) -eq 0 ]]; then
+        wait "${pids[@]}"
+        pids=()
+    fi
+done
+
+wait "${pids[@]}"

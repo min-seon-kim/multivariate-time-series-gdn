@@ -28,7 +28,7 @@ def train_model(model = None, save_path = '', config={},  train_dataloader=None,
 
     seed = config['seed']
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=config['decay'])
+    optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'], weight_decay=config['decay'])
 
     now = time.time()
     
@@ -46,7 +46,7 @@ def train_model(model = None, save_path = '', config={},  train_dataloader=None,
 
     i = 0
     epoch = config['epoch']
-    early_stop_win = 10
+    early_stop_win = config['early_stop_win']
 
     model.train()
 
