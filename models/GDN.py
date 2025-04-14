@@ -160,9 +160,9 @@ class GDN(nn.Module):
         device = data.device
 
         batch_num, node_num, all_feature = x.shape
-        # print("batch num", batch_num, "node num", node_num, "time window", all_feature)
+        
         x = x.view(-1, all_feature).contiguous()
-        ###############################################################################
+        
         temporal_x = data.clone().detach()
         temporal_x = temporal_x.permute(0, 2, 1)
         temporal_x = temporal_x.reshape(-1, node_num)
@@ -173,8 +173,6 @@ class GDN(nn.Module):
         gated_edge_index = gated_edge_index.to(device)
 
         time_edge_index = get_batch_edge_index(gated_edge_index, batch_num, all_feature).to(device)
-        # print("time edge index:", time_edge_index.shape)
-        ###############################################################################
 
         gcn_outs = []
         for i, edge_index in enumerate(edge_index_sets):
@@ -209,7 +207,7 @@ class GDN(nn.Module):
             gated_edge_index = torch.cat((gated_j, gated_i), dim=0)
 
             batch_gated_edge_index = get_batch_edge_index(gated_edge_index, batch_num, node_num).to(device)
-            # print("batch_gated_edge_index:", batch_gated_edge_index.shape)
+            
             gcn_out = self.gnn_layers[i](x, batch_gated_edge_index, node_num=node_num*batch_num, embedding=all_embeddings, temporal_x=temporal_x, time_edge_index=time_edge_index, model_type=self.model_type)
 
             

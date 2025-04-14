@@ -9,4 +9,5 @@ data/swat/*
 scripts/*.csv
 run_copy.sh
 myenv/
+output.log
 __pycache__
