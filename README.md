@@ -23,13 +23,18 @@
 * torch-geometric == 2.6.1
 
 
-### Quick Start
-Run to check if the environment is ready
+### Run
 ```
-    bash run.sh cpu msl
-    # or with gpu
-    bash run.sh <gpu_id> msl    # e.g. bash run.sh 1 msl
+    # using gpu
+    bash run.sh <gpu_id> <dataset> <STGDN/GDN>
+
+    # or using cpu
+    bash run.sh cpu <dataset> <STGDN/GDN>
 ```
+You can change running parameters in the run.sh.
+
+# Others
+SWaT and WADI datasets can be requested from [iTrust](https://itrust.sutd.edu.sg/)
 
 
 # Usage
@@ -56,19 +61,6 @@ data
 * The first column in .csv will be regarded as index column. 
 * The column sequence in .csv don't need to match the sequence in list.txt, we will rearrange the data columns according to the sequence in list.txt.
 * test.csv should have a column named "attack" which contains ground truth label(0/1) of being attacked or not(0: normal, 1: attacked)
-
-## Run
-```
-    # using gpu
-    bash run.sh <gpu_id> <dataset>
-
-    # or using cpu
-    bash run.sh cpu <dataset>
-```
-You can change running parameters in the run.sh.
-
-# Others
-SWaT and WADI datasets can be requested from [iTrust](https://itrust.sutd.edu.sg/)
 
 
 # Citation
