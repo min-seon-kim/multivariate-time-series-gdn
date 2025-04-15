@@ -222,7 +222,7 @@ if __name__ == "__main__":
     parser.add_argument('-out_layer_num', help='outlayer num', type = int, default=1)
     parser.add_argument('-out_layer_inter_dim', help='out_layer_inter_dim', type = int, default=256)
     parser.add_argument('-lr', help='learning rate', type = float, default=0.001)
-    parser.add_argument('-loss_func', help='loss function', type = float, default='mse')
+    parser.add_argument('-loss_func', help='loss function', type = str, default='mse')
     parser.add_argument('-early_stop_win', help='early stopping', type = int, default=15)
     parser.add_argument('-decay', help='decay', type = float, default=0)
     parser.add_argument('-val_ratio', help='val ratio', type = float, default=0.1)
