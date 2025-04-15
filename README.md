@@ -1,4 +1,4 @@
-# Spatio-Temporal Graph Deviation Network(ST-GDN)
+# ST-GDN: Spatio-Temporal Graph Deviation Network
 
 ## Installation
 ### Requirements
