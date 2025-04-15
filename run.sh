@@ -14,6 +14,7 @@ val_ratio=0.2
 decay=1e-4
 lr=0.001
 early_stop_win=10
+loss_func="contrastive"
 
 path_pattern="${DATASET}"
 COMMENT="${DATASET}"
@@ -41,6 +42,7 @@ if [[ "$gpu_n" == "cpu" ]]; then
         -epoch $EPOCH \
         -comment $COMMENT \
         -random_seed $seed \
+        -loss_func $loss_func \
         -lr $lr \
         -early_stop_win $early_stop_win \
         -decay $decay \
@@ -62,6 +64,7 @@ else
         -epoch $EPOCH \
         -comment $COMMENT \
         -random_seed $seed \
+        -loss_func $loss_func \
         -lr $lr \
         -early_stop_win $early_stop_win \
         -decay $decay \

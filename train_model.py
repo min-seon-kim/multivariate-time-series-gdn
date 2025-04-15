@@ -23,6 +23,18 @@ def loss_func(y_pred, y_true):
     return loss
 
 
+def contrastive_loss(y_pred, y_true, label):
+    mse = F.mse_loss(y_pred, y_true, reduction='none')
+
+    score = torch.mean(mse, dim=-1)
+
+    # label: 0 (normal), 1 (anomaly)
+    margin = 1.0
+    normal_loss = (1 - label) * score
+    anomaly_loss = label * torch.clamp(margin - score, min=0)
+
+    return torch.mean(normal_loss + anomaly_loss)
+
 
 def train_model(model = None, save_path = '', config={},  train_dataloader=None, val_dataloader=None, feature_map={}, test_dataloader=None, test_dataset=None, dataset_name='swat', train_dataset=None):
 
@@ -67,8 +79,14 @@ def train_model(model = None, save_path = '', config={},  train_dataloader=None,
 
             optimizer.zero_grad()
             out = model(x, edge_index).float().to(device)
-            loss = loss_func(out, labels)
-            
+
+            if config['loss_func'] == "mse":
+                loss = loss_func(out, labels)
+            elif config['loss_func'] == "contrastive":
+                loss = contrastive_loss(out, labels, attack_labels.to(device))
+            else:
+                raise ValueError("Choose loss function between [mse/contrastive]")
+
             loss.backward()
             optimizer.step()
 

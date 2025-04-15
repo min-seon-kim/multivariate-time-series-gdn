@@ -2,7 +2,7 @@
 GPU=$1
 DATASET=$2
 MODEL=$3
-MAX_PARALLEL=4
+MAX_PARALLEL=2
 
 BATCH_SIZE=32
 SLIDE_WIN=5
@@ -15,6 +15,7 @@ val_ratio=0.2
 decay=1e-4
 lr=0.001
 early_stop_win=10
+loss_func="contrastive"
 
 COMMENT="${DATASET}"
 
@@ -48,6 +49,7 @@ for seed in $(seq 1 42); do
         -epoch $EPOCH \
         -comment $COMMENT \
         -random_seed $seed \
+        -loss_func $loss_func \
         -lr $lr \
         -early_stop_win $early_stop_win \
         -decay $decay \

@@ -56,7 +56,6 @@ class OutLayer(nn.Module):
         return out
 
 
-
 class GNNLayer(nn.Module):
     def __init__(self, in_channel, out_channel, inter_dim=0, heads=1, node_num=100):
         super(GNNLayer, self).__init__()
@@ -69,16 +68,12 @@ class GNNLayer(nn.Module):
         self.leaky_relu = nn.LeakyReLU()
 
     def forward(self, x, edge_index, embedding=None, temporal_x=None, time_edge_index=None, model_type=None, node_num=0, all_feature=0, batch_num=0):
-        # print("x.shape", x.shape)
-        # print("edge_index.shape", edge_index.shape)
         out, (new_edge_index, att_weight) = self.gnn(x, edge_index, embedding, return_attention_weights=True, spatial=True)
         self.att_weight_1 = att_weight
         self.edge_index_1 = new_edge_index
   
         if model_type == 'STGDN':
             if temporal_x is not None and time_edge_index is not None:
-                # print("temporal_x.shape", temporal_x.shape)
-                # print("time_edge_index.shape", time_edge_index.shape)
                 temporal_out = self.gnn(
                     temporal_x, time_edge_index,
                     embedding=None,
@@ -96,9 +91,9 @@ class GNNLayer(nn.Module):
                 d = temporal_out.size(-1)
 
                 temporal_out = temporal_out.view(batch_num, all_feature, d).mean(dim=1)
-                # print(temporal_out.shape)
+                
                 temporal_out = temporal_out.unsqueeze(1).repeat(1, node_num, 1).view(batch_num * node_num, d)
-                # print(out.shape, temporal_out.shape) # torch.Size([1632, 64]) torch.Size([160, 64])
+                
                 out = F.relu(out + temporal_out)
             else:
                 out = F.relu(out)

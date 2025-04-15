@@ -48,15 +48,12 @@ class GraphLayer(MessagePassing):
         glorot(self.att_i)
         glorot(self.att_j)
         glorot(self.temporal_proj.weight)
-
         glorot(self.temp_att_i)
         glorot(self.temp_att_j)
 
         zeros(self.att_em_i)
         zeros(self.att_em_j)
-
         zeros(self.bias)
-
 
 
     def forward(self, x, edge_index, embedding, return_attention_weights=False, spatial=False):
