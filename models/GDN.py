@@ -84,7 +84,8 @@ class GNNLayer(nn.Module):
                 # Combine: z_i^(t) = ReLU(spatial + temporal)
                 # temporal_out을 여기서 time_window의 길이 만큼 묶고, 총 (batch_num, d) 차원만큼 나와야함
                 # 그리고 이걸 out에 더할때는 배치 단위로 동일하게 여러개 만들어서 차원 맞추어서 더하기
-                # print(out.shape, temporal_out.shape) # torch.Size([1632, 64]) torch.Size([160, 64])
+                # out.shape은 torch.Size([1632, 64]) -> 1632 = 51(node_num)x32(batch_size)
+                # temporal_out.shape은 torch.Size([160, 64]) -> 160 = 5(window_size)x32(batch_size)
                 node_num = temporal_x.size(-1)
                 all_feature = int(time_edge_index.size(-1)/temporal_x.size(0))
                 batch_num = int(temporal_out.size(0)/all_feature)

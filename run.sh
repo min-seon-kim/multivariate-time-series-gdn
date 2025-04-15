@@ -14,7 +14,7 @@ val_ratio=0.2
 decay=1e-4
 lr=0.001
 early_stop_win=10
-loss_func="contrastive"
+loss_func="mse"
 
 path_pattern="${DATASET}"
 COMMENT="${DATASET}"
@@ -27,6 +27,7 @@ elif [ "$DATASET" == "swat" ]; then
     dim=64
     topk=15
     out_layer_inter_dim=64
+    SLIDE_WIN=15
 fi
 
 EPOCH=50

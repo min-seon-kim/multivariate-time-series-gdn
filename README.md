@@ -1,6 +1,19 @@
-# Graph Deviation Network(GDN)
+# Spatio-Temporal Graph Deviation Network(ST-GDN)
 
-Code implementation for : [Graph Neural Network-Based Anomaly Detection in Multivariate Time Series(AAAI'21)](https://arxiv.org/pdf/2106.06947.pdf)
+## Performance Comparison on SWaT and WADI
+| Model      | Metric    | SWaT Mean | SWaT Std | WADI Mean | WADI Std |
+|------------|-----------|-----------|----------|-----------|----------|
+| **GDN**    | F1        | 0.5803    | 0.1165   |           |          |
+|            | Precision | 0.5205    | 0.2220   |           |          |
+|            | Recall    | 0.7159    | 0.0261   |           |          |
+|            | Accuracy  | 0.8656    | 0.0481   |           |          |
+|            | ROC       | 0.8807    | 0.0092   |           |          |
+|------------|-----------|-----------|----------|-----------|----------|
+| **ST-GDN** | F1        | **0.7593**|**0.0709**| 0.2339    | 0.0657   |
+|            | Precision | **0.9200**|**0.1490**| 0.9289    | 0.0442   |
+|            | Recall    |   0.6573  |**0.0184**| 0.1359    | 0.0436   |
+|            | Accuracy  | **0.9471**|**0.0286**| 0.9494    | 0.0021   |
+|            | ROC       | **0.8931**|  0.0123  | 0.6760    | 0.0555   |
 
 
 # Installation
