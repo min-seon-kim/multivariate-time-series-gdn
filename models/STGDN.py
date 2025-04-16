@@ -75,29 +75,31 @@ class GNNLayer(nn.Module):
         if model_type == 'STGDN':
             if temporal_x is not None and time_edge_index is not None:
                 # temporal_x.shape = (batch_num * all_feature, node_num)
-                temporal_out = self.gnn(
-                    temporal_x, time_edge_index,
-                    embedding=None,
-                    return_attention_weights=False,
-                    spatial=False
-                )
-
-                # Combine: z_i^(t) = ReLU(spatial + temporal)
-                # temporal_out을 여기서 time_window의 길이 만큼 묶고, 총 (batch_num, d) 차원만큼 나와야함
-                # 그리고 이걸 out에 더할때는 배치 단위로 동일하게 여러개 만들어서 차원 맞추어서 더하기
-                # out.shape은 torch.Size([1632, 64]) -> 1632 = 51(node_num)x32(batch_size)
-                # temporal_out.shape은 torch.Size([160, 64]) -> 160 = 5(window_size)x32(batch_size)
                 node_num = temporal_x.size(-1)
                 all_feature = int(time_edge_index.size(-1)/temporal_x.size(0))
-                batch_num = int(temporal_out.size(0)/all_feature)
-                d = temporal_out.size(-1)
+                batch_num = int(temporal_x.size(0)/all_feature)
+                temporal_x = temporal_x.view(batch_num, all_feature, node_num)
 
-                temporal_out = temporal_out.view(batch_num, all_feature, d).mean(dim=1)
-                
-                temporal_out = temporal_out.unsqueeze(1).repeat(1, node_num, 1).view(batch_num * node_num, d)
-                
-                # beta = 1.0
-                # temporal_out = temporal_out/beta
+                signature_matrix = []
+                for i in range(node_num):
+                    node_x = temporal_x[:, :, i]
+                    node_x = node_x.view(-1, 1)
+
+                    node_out = self.gnn(
+                        node_x, time_edge_index,
+                        embedding=None,
+                        return_attention_weights=False,
+                        spatial=False
+                    )
+
+                    signature_matrix.append(node_out)
+
+                # (batch_num * all_feature, node_num, d)
+                temporal_out = torch.stack(signature_matrix, dim=1)
+                # (batch_num, node_num, d)
+                temporal_out = temporal_out.view(batch_num, all_feature, node_num, -1).mean(dim=1)
+                # (batch_num * node_num, d)
+                temporal_out = temporal_out.view(-1, temporal_out.shape[-1])
 
                 out = F.relu(out + temporal_out)
             else:
@@ -217,7 +219,7 @@ class GDN(nn.Module):
         x = x.view(batch_num, node_num, -1)
 
 
-        indexes = torch.arange(0, node_num).to(device)
+        indexes = torch.arange(0,node_num).to(device)
         out = torch.mul(x, self.embedding(indexes))
         
         out = out.permute(0,2,1)

@@ -32,7 +32,7 @@ class GraphLayer(MessagePassing):
 
         self.temp_att_i = Parameter(torch.Tensor(1, heads, out_channels))
         self.temp_att_j = Parameter(torch.Tensor(1, heads, out_channels))
-        self.temporal_proj = Linear(node_num, heads * out_channels, bias=False)
+        self.temporal_lin = Linear(node_num, heads * out_channels, bias=False)
 
         if bias and concat:
             self.bias = Parameter(torch.Tensor(heads * out_channels))
@@ -47,7 +47,7 @@ class GraphLayer(MessagePassing):
         glorot(self.lin.weight)
         glorot(self.att_i)
         glorot(self.att_j)
-        glorot(self.temporal_proj.weight)
+        glorot(self.temporal_lin.weight)
         glorot(self.temp_att_i)
         glorot(self.temp_att_j)
 
@@ -65,10 +65,10 @@ class GraphLayer(MessagePassing):
                 x = (self.lin(x[0]), self.lin(x[1]))
         else:
             if torch.is_tensor(x):
-                x = self.temporal_proj(x)
+                x = self.temporal_lin(x)
                 x = (x, x)
             else:
-                x = (self.temporal_proj(x[0]), self.temporal_proj(x[1]))
+                x = (self.temporal_lin(x[0]), self.temporal_lin(x[1]))
         
         edge_index, _ = remove_self_loops(edge_index)
         edge_index, _ = add_self_loops(edge_index,
