@@ -23,6 +23,7 @@ if [ "$DATASET" == "wadi" ]; then
     dim=128
     topk=30
     out_layer_inter_dim=128
+    SLIDE_WIN=10
 elif [ "$DATASET" == "swat" ]; then
     dim=64
     topk=15
@@ -36,7 +37,7 @@ EPOCH=50
 report='val'
 
 pids=()
-for seed in $(seq 1 42); do
+for seed in $(seq 1 2); do
     (
     echo "Running seed $seed..."
 

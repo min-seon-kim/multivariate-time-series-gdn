@@ -95,6 +95,9 @@ class GNNLayer(nn.Module):
                 
                 temporal_out = temporal_out.unsqueeze(1).repeat(1, node_num, 1).view(batch_num * node_num, d)
                 
+                beta = 1.0
+                temporal_out = temporal_out/beta
+
                 out = F.relu(out + temporal_out)
             else:
                 out = F.relu(out)
