@@ -63,7 +63,7 @@ class GNNLayer(nn.Module):
 
         self.gnn = GraphLayer(in_channel, out_channel, node_num, inter_dim=inter_dim, heads=heads, concat=False)
         
-        self.bn = nn.BatchNorm1d(out_channel)
+        self.bn = nn.BatchNorm1d(out_channel*2)
         self.relu = nn.ReLU()
         self.leaky_relu = nn.LeakyReLU()
 
@@ -96,10 +96,9 @@ class GNNLayer(nn.Module):
                 
                 temporal_out = temporal_out.unsqueeze(1).repeat(1, node_num, 1).view(batch_num * node_num, d)
                 
-                # beta = 1.0
-                # temporal_out = temporal_out/beta
+                out = torch.cat([out, temporal_out], dim=-1)
 
-                out = F.relu(out + temporal_out)
+                out = F.relu(out)
             else:
                 out = F.relu(out)
         else:
@@ -123,7 +122,7 @@ class GDN(nn.Module):
         edge_index = edge_index_sets[0]
 
 
-        embed_dim = dim
+        embed_dim = dim*2
         self.embedding = nn.Embedding(node_num, embed_dim)
         self.bn_outlayer_in = nn.BatchNorm1d(embed_dim)
 
@@ -140,7 +139,7 @@ class GDN(nn.Module):
 
         self.learned_graph = None
 
-        self.out_layer = OutLayer(dim*edge_set_num, node_num, out_layer_num, inter_num = out_layer_inter_dim)
+        self.out_layer = OutLayer(2*dim*edge_set_num, node_num, out_layer_num, inter_num = out_layer_inter_dim)
 
         self.cache_edge_index_sets = [None] * edge_set_num
         self.cache_embed_index = None

@@ -27,8 +27,8 @@ class GraphLayer(MessagePassing):
         self.lin = Linear(in_channels, heads * out_channels, bias=False)
         self.att_i = Parameter(torch.Tensor(1, heads, out_channels))
         self.att_j = Parameter(torch.Tensor(1, heads, out_channels))
-        self.att_em_i = Parameter(torch.Tensor(1, heads, out_channels))
-        self.att_em_j = Parameter(torch.Tensor(1, heads, out_channels))
+        self.att_em_i = Parameter(torch.Tensor(1, heads, out_channels*2))
+        self.att_em_j = Parameter(torch.Tensor(1, heads, out_channels*2))
 
         self.temp_att_i = Parameter(torch.Tensor(1, heads, out_channels))
         self.temp_att_j = Parameter(torch.Tensor(1, heads, out_channels))
