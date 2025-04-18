@@ -96,7 +96,18 @@ def get_f1_scores(total_err_scores, gt_labels, topk=1):
 
     return final_topk_fmeas
 
-def get_val_performance_data(total_err_scores, normal_scores, gt_labels, topk=1):
+
+def dilate_anomaly(preds, window=5):
+    preds = preds.copy()
+    for i in range(len(preds)):
+        if preds[i] == 1:
+            start = max(0, i - window)
+            end = min(len(preds), i + window + 1)
+            preds[start:end] = 1
+    return preds
+
+
+def get_val_performance_data(total_err_scores, normal_scores, gt_labels, dilation_window, topk=1):
     total_features = total_err_scores.shape[0]
 
     topk_indices = np.argpartition(total_err_scores, range(total_features-topk-1, total_features), axis=0)[-topk:]
@@ -110,6 +121,8 @@ def get_val_performance_data(total_err_scores, normal_scores, gt_labels, topk=1)
 
     pred_labels = np.zeros(len(total_topk_err_scores))
     pred_labels[total_topk_err_scores > thresold] = 1
+
+    # pred_labels = dilate_anomaly(pred_labels, window=dilation_window)
 
     for i in range(len(pred_labels)):
         pred_labels[i] = int(pred_labels[i])
@@ -126,7 +139,7 @@ def get_val_performance_data(total_err_scores, normal_scores, gt_labels, topk=1)
     return f1, pre, rec, acc, auc_score, thresold
 
 
-def get_best_performance_data(total_err_scores, gt_labels, topk=1):
+def get_best_performance_data(total_err_scores, gt_labels, dilation_window, topk=1):
 
     total_features = total_err_scores.shape[0]
 
@@ -145,6 +158,8 @@ def get_best_performance_data(total_err_scores, gt_labels, topk=1):
 
     pred_labels = np.zeros(len(total_topk_err_scores))
     pred_labels[total_topk_err_scores > thresold] = 1
+
+    # pred_labels = dilate_anomaly(pred_labels, window=dilation_window)
 
     for i in range(len(pred_labels)):
         pred_labels[i] = int(pred_labels[i])

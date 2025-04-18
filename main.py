@@ -127,7 +127,7 @@ class Main():
         _, self.test_result = test_model(best_model, self.test_dataloader)
         _, self.val_result = test_model(best_model, self.val_dataloader)
 
-        self.get_score(self.test_result, self.val_result)
+        self.get_score(self.test_result, self.val_result, self.train_config['slide_win'])
 
     def get_loaders(self, train_dataset, seed, batch, val_ratio=0.1):
         dataset_len = int(len(train_dataset))
@@ -151,7 +151,7 @@ class Main():
 
         return train_dataloader, val_dataloader
 
-    def get_score(self, test_result, val_result):
+    def get_score(self, test_result, val_result, dilation_window):
 
         feature_num = len(test_result[0][0])
         np_test_result = np.array(test_result)
@@ -161,8 +161,8 @@ class Main():
     
         test_scores, normal_scores = get_full_err_scores(test_result, val_result)
 
-        top1_best_info = get_best_performance_data(test_scores, test_labels, topk=1) 
-        top1_val_info = get_val_performance_data(test_scores, normal_scores, test_labels, topk=1)
+        top1_best_info = get_best_performance_data(test_scores, test_labels, dilation_window, topk=1) 
+        top1_val_info = get_val_performance_data(test_scores, normal_scores, test_labels, dilation_window, topk=1)
 
 
         print('=========================** Result **============================\n')
