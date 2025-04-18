@@ -57,13 +57,16 @@ class OutLayer(nn.Module):
 
 
 class GNNLayer(nn.Module):
-    def __init__(self, in_channel, out_channel, inter_dim=0, heads=1, node_num=100):
+    def __init__(self, in_channel, out_channel, inter_dim=0, heads=1, node_num=100, model_type="GDN"):
         super(GNNLayer, self).__init__()
 
 
-        self.gnn = GraphLayer(in_channel, out_channel, node_num, inter_dim=inter_dim, heads=heads, concat=False)
+        self.gnn = GraphLayer(in_channel, out_channel, node_num, inter_dim=inter_dim, heads=heads, concat=False, model_type="GDN")
         
-        self.bn = nn.BatchNorm1d(out_channel*2)
+        if model_type == "GDN":
+            self.bn = nn.BatchNorm1d(out_channel)
+        else:
+            self.bn = nn.BatchNorm1d(out_channel*2)
         self.relu = nn.ReLU()
         self.leaky_relu = nn.LeakyReLU()
 
@@ -122,14 +125,18 @@ class GDN(nn.Module):
         edge_index = edge_index_sets[0]
 
 
-        embed_dim = dim*2
+        if model_type == "GDN":
+            embed_dim = dim
+        else:
+            embed_dim = dim*2
+
         self.embedding = nn.Embedding(node_num, embed_dim)
         self.bn_outlayer_in = nn.BatchNorm1d(embed_dim)
 
 
         edge_set_num = len(edge_index_sets)
         self.gnn_layers = nn.ModuleList([
-            GNNLayer(input_dim, dim, inter_dim=dim+embed_dim, heads=1, node_num=node_num) for i in range(edge_set_num)
+            GNNLayer(input_dim, dim, inter_dim=dim+embed_dim, heads=1, node_num=node_num, model_type=model_type) for i in range(edge_set_num)
         ])
 
 
@@ -139,7 +146,10 @@ class GDN(nn.Module):
 
         self.learned_graph = None
 
-        self.out_layer = OutLayer(2*dim*edge_set_num, node_num, out_layer_num, inter_num = out_layer_inter_dim)
+        if model_type == "GDN":
+            self.out_layer = OutLayer(dim*edge_set_num, node_num, out_layer_num, inter_num = out_layer_inter_dim)
+        else:
+            self.out_layer = OutLayer(2*dim*edge_set_num, node_num, out_layer_num, inter_num = out_layer_inter_dim)
 
         self.cache_edge_index_sets = [None] * edge_set_num
         self.cache_embed_index = None
