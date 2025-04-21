@@ -168,8 +168,9 @@ def get_best_performance_data(total_err_scores, gt_labels, dilation_window, topk
 
     pre = precision_score(gt_labels, pred_labels)
     rec = recall_score(gt_labels, pred_labels)
+    acc = accuracy_score(gt_labels, pred_labels)
 
     auc_score = roc_auc_score(gt_labels, total_topk_err_scores)
 
-    return max(final_topk_fmeas), pre, rec, auc_score, thresold
+    return max(final_topk_fmeas), pre, rec, acc, auc_score, thresold
 

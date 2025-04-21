@@ -34,7 +34,7 @@ OUT_DIR="./results/${DATASET}_${MODEL}_seeds"
 mkdir -p $OUT_DIR
 
 EPOCH=50
-report='best'
+report='val'
 
 pids=()
 for seed in $(seq 1 10); do
