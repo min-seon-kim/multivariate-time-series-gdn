@@ -107,7 +107,7 @@ def dilate_anomaly(preds, window=5):
     return preds
 
 
-def get_val_performance_data(total_err_scores, normal_scores, gt_labels, dilation_window, topk=1):
+def get_val_performance_data(total_err_scores, normal_scores, gt_labels, threshold, dilation_window, topk=1):
     total_features = total_err_scores.shape[0]
 
     topk_indices = np.argpartition(total_err_scores, range(total_features-topk-1, total_features), axis=0)[-topk:]
@@ -117,10 +117,11 @@ def get_val_performance_data(total_err_scores, normal_scores, gt_labels, dilatio
 
     total_topk_err_scores = np.sum(np.take_along_axis(total_err_scores, topk_indices, axis=0), axis=0)
 
-    thresold = np.max(normal_scores)
+    # thresold = np.max(normal_scores)
+    print("Validation threshold:", threshold)
 
     pred_labels = np.zeros(len(total_topk_err_scores))
-    pred_labels[total_topk_err_scores > thresold] = 1
+    pred_labels[total_topk_err_scores > threshold] = 1
 
     # pred_labels = dilate_anomaly(pred_labels, window=dilation_window)
 
@@ -136,7 +137,7 @@ def get_val_performance_data(total_err_scores, normal_scores, gt_labels, dilatio
 
     auc_score = roc_auc_score(gt_labels, total_topk_err_scores)
 
-    return f1, pre, rec, acc, auc_score, thresold
+    return f1, pre, rec, acc, auc_score, threshold
 
 
 def get_best_performance_data(total_err_scores, gt_labels, dilation_window, topk=1):
@@ -155,7 +156,7 @@ def get_best_performance_data(total_err_scores, gt_labels, dilation_window, topk
 
     th_i = final_topk_fmeas.index(max(final_topk_fmeas))
     thresold = thresolds[th_i]
-
+    print("Best threshold:", thresold)
     pred_labels = np.zeros(len(total_topk_err_scores))
     pred_labels[total_topk_err_scores > thresold] = 1
 

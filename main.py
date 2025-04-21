@@ -79,14 +79,27 @@ class Main():
         self.train_dataset = train_dataset
         self.test_dataset = test_dataset
 
-        generator = torch.Generator()
-        generator.manual_seed(train_config['seed'])
+        # generator = torch.Generator()
+        # generator.manual_seed(train_config['seed'])
 
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
-        self.test_dataloader = DataLoader(test_dataset, batch_size=train_config['batch'],
-                            shuffle=False, num_workers=0, generator=generator)
 
+        adj_len = int(len(test_dataset))
+        adj_use_len = int(adj_len * 0.5)
+        indices = torch.arange(adj_len)
+
+        adj_sub_indices = indices[:adj_use_len]
+        adj_subset = Subset(test_dataset, adj_sub_indices)
+
+        test_sub_indices = indices[adj_use_len:]
+        test_subset = Subset(test_dataset, test_sub_indices)
+
+        self.adj_dataloader = DataLoader(adj_subset, batch_size=train_config['batch'],
+                            shuffle=False)    
+
+        self.test_dataloader = DataLoader(test_subset, batch_size=train_config['batch'],
+                            shuffle=False)
 
         edge_index_sets = []
         edge_index_sets.append(fc_edge_index)
@@ -126,8 +139,9 @@ class Main():
 
         _, self.test_result = test_model(best_model, self.test_dataloader)
         _, self.val_result = test_model(best_model, self.val_dataloader)
+        _, self.adj_result = test_model(best_model, self.adj_dataloader)
 
-        self.get_score(self.test_result, self.val_result, self.train_config['slide_win'])
+        self.get_score(self.test_result, self.val_result, self.adj_result, self.train_config['slide_win'])
 
     def get_loaders(self, train_dataset, seed, batch, val_ratio=0.1):
         dataset_len = int(len(train_dataset))
@@ -151,19 +165,23 @@ class Main():
 
         return train_dataloader, val_dataloader
 
-    def get_score(self, test_result, val_result, dilation_window):
+    def get_score(self, test_result, val_result, adj_result, dilation_window):
 
         feature_num = len(test_result[0][0])
         np_test_result = np.array(test_result)
         np_val_result = np.array(val_result)
+        np_adj_result = np.arrary(adj_result)
 
         test_labels = np_test_result[2, :, 0].tolist()
+        adj_labels = np_adj_result[2, :, 0].tolist()
     
         test_scores, normal_scores = get_full_err_scores(test_result, val_result)
 
-        top1_best_info = get_best_performance_data(test_scores, test_labels, dilation_window, topk=1) 
-        top1_val_info = get_val_performance_data(test_scores, normal_scores, test_labels, dilation_window, topk=1)
+        top1_adj_info = get_best_performance_data(test_scores, adj_labels, dilation_window, topk=1)
+        threshold = top1_adj_info[-1]
 
+        top1_best_info = get_best_performance_data(test_scores, test_labels, dilation_window, topk=1) 
+        top1_val_info = get_val_performance_data(test_scores, normal_scores, test_labels, threshold, dilation_window, topk=1)
 
         print('=========================** Result **============================\n')
 

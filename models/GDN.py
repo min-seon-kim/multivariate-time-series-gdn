@@ -61,7 +61,7 @@ class GNNLayer(nn.Module):
         super(GNNLayer, self).__init__()
 
 
-        self.gnn = GraphLayer(in_channel, out_channel, node_num, inter_dim=inter_dim, heads=heads, concat=False, model_type="GDN")
+        self.gnn = GraphLayer(in_channel, out_channel, node_num, inter_dim=inter_dim, heads=heads, concat=False, model_type=model_type)
         
         if model_type == "GDN":
             self.bn = nn.BatchNorm1d(out_channel)
