@@ -7,6 +7,25 @@
 * torch == 2.5.0
 * torch-geometric == 2.6.1
 
+## Architecture Enhancement: Temporal Attention in ST-GDN
+
+ST-GDN extends the original GDN by integrating a **temporal self-attention mechanism**, allowing the model to adaptively focus on important time steps in the past when detecting deviations.
+
+### Updated Node Representation
+
+The updated hidden representation at time step \( t \), denoted as \( h_t \), is computed as:
+
+$$
+h_t = x_t \oplus \text{ReLU} \left( \alpha_{t,t} W' x_t + \sum_{t' \in \mathcal{N}_t} \alpha_{t,t'} W' x_{t'} \right)
+$$
+
+- \( \oplus \): concatenation operator  
+- \( \alpha_{t,t'} \): learned attention weights between current time \( t \) and past time steps \( t' \in \mathcal{N}_t \)  
+- \( W' \): shared linear transformation  
+- \( \mathcal{N}_t \): temporal neighborhood of time step \( t \)
+
+This mechanism enables the model to better capture temporal dependencies and prioritize relevant anomalies across time.
+
 
 ### Run
 ```
@@ -37,6 +56,7 @@ data
 ```
 SWaT and WADI datasets can be requested from [iTrust](https://itrust.sutd.edu.sg/)
 
+<!--
 ## Performance Comparison on SWaT and WADI
 | Model      | Metric    | SWaT Mean | SWaT Std | WADI Mean | WADI Std |
 |------------|-----------|-----------|----------|-----------|----------|
@@ -50,7 +70,7 @@ SWaT and WADI datasets can be requested from [iTrust](https://itrust.sutd.edu.sg
 |            | Recall    |   0.6573  |**0.0184**| 0.1359    | 0.0436   |
 |            | Accuracy  | **0.9471**|**0.0286**| 0.9494    | 0.0021   |
 |            | ROC       | **0.8931**|  0.0123  | 0.6760    | 0.0555   |
-
+-->
 
 ### Notices:
 * The first column in .csv will be regarded as index column. 
