@@ -37,7 +37,7 @@ EPOCH=50
 report='best'
 
 pids=()
-for seed in $(seq 1 2); do
+for seed in $(seq 1 10); do
     (
     echo "Running seed $seed..."
 

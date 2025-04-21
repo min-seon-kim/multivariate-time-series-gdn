@@ -170,7 +170,7 @@ class Main():
         feature_num = len(test_result[0][0])
         np_test_result = np.array(test_result)
         np_val_result = np.array(val_result)
-        np_adj_result = np.arrary(adj_result)
+        np_adj_result = np.array(adj_result)
 
         test_labels = np_test_result[2, :, 0].tolist()
         adj_labels = np_adj_result[2, :, 0].tolist()
