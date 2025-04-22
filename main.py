@@ -165,6 +165,24 @@ class Main():
 
         return train_dataloader, val_dataloader
 
+
+    def plot_anomaly_scores_with_threshold(self, total_err_scores, threshold, save_path=None):
+        max_anomaly_scores = np.max(total_err_scores, axis=0)
+        time_steps = np.arange(len(max_anomaly_scores))
+
+        plt.figure(figsize=(15, 5))
+        plt.bar(time_steps, max_anomaly_scores, label='Total Anomaly Score', width=1.0)
+        # plt.plot(max_anomaly_scores, label='Total Anomaly Score', linewidth=0.5)
+        plt.axhline(y=threshold, color='red', linestyle='--', label=f'Threshold = {threshold:.4f}')
+        plt.xlabel('Time Step')
+        plt.ylabel('Anomaly Score')
+        plt.legend()
+
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        plt.close()
+
+
     def get_score(self, test_result, val_result, adj_result, dilation_window):
 
         feature_num = len(test_result[0][0])
@@ -202,6 +220,11 @@ class Main():
             writer = csv.writer(f)
             writer.writerow(['F1', 'Precision', 'Recall', 'Accuracy', 'AUC'])
             writer.writerow([info[0], info[1], info[2], info[3], info[4]])
+
+        fig_path = f'./fig/{self.env_config["save_path"]}/total_anomaly.png'
+        Path(os.path.dirname(fig_path)).mkdir(parents=True, exist_ok=True)
+        self.plot_anomaly_scores_with_threshold(test_scores, threshold, save_path=fig_path)
+
 
     def get_save_path(self, feature_name=''):
 

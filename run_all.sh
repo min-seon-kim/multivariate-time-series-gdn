@@ -15,7 +15,7 @@ val_ratio=0.2
 decay=1e-4
 lr=0.001
 early_stop_win=10
-loss_func="contrastive"
+loss_func="mse"
 
 COMMENT="${DATASET}"
 
