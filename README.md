@@ -11,21 +11,10 @@
 
 ST-GDN extends the original GDN by integrating a **temporal self-attention mechanism**, allowing the model to adaptively focus on important time steps in the past when detecting deviations.
 
-### Updated Node Representation
-
-The updated hidden representation at time step \( t \), denoted as \( h_t \), is computed as:
-
-$$
-h_t = x_t \oplus \text{ReLU} \left( \alpha_{t,t} W' x_t + \sum_{t' \in \mathcal{N}_t} \alpha_{t,t'} W' x_{t'} \right)
-$$
-
-- \( \oplus \): concatenation operator  
-- \( \alpha_{t,t'} \): learned attention weights between current time \( t \) and past time steps \( t' \in \mathcal{N}_t \)  
-- \( W' \): shared linear transformation  
-- \( \mathcal{N}_t \): temporal neighborhood of time step \( t \)
-
-This mechanism enables the model to better capture temporal dependencies and prioritize relevant anomalies across time.
-
+The updated representative vector in sensor _i_ at time step _t_, is computed as:
+![image](https://github.com/user-attachments/assets/98928515-5ead-4cac-813d-272570285064)
+![image](https://github.com/user-attachments/assets/25287d18-9ce0-4c07-b4c9-5dc3d1d980c3)
+![image](https://github.com/user-attachments/assets/9be0f70e-a5d7-4438-bf56-840e8f741240)
 
 ### Run
 ```
