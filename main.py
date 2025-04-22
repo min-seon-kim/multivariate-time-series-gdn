@@ -171,12 +171,12 @@ class Main():
         time_steps = np.arange(len(max_anomaly_scores))
 
         plt.figure(figsize=(15, 5))
-        plt.bar(time_steps, max_anomaly_scores, label='Total Anomaly Score', width=1.0)
+        plt.bar(time_steps, max_anomaly_scores, label='Total Anomaly Score', width=2.0)
         # plt.plot(max_anomaly_scores, label='Total Anomaly Score', linewidth=0.5)
         plt.axhline(y=threshold, color='red', linestyle='--', label=f'Threshold = {threshold:.4f}')
         plt.xlabel('Time Step')
         plt.ylabel('Anomaly Score')
-        plt.legend()
+        plt.legend(loc='upper right')
 
         if save_path:
             plt.savefig(save_path, dpi=300, bbox_inches='tight')
@@ -199,7 +199,8 @@ class Main():
         threshold = top1_adj_info[-1]
 
         top1_best_info = get_best_performance_data(test_scores, test_labels, dilation_window, topk=1) 
-        top1_val_info = get_val_performance_data(test_scores, normal_scores, test_labels, threshold, dilation_window, topk=1)
+        top1_val_info = get_val_performance_data(test_scores, normal_scores, test_labels, dilation_window, topk=1, threshold=threshold)
+        top1_recon_info = get_val_performance_data(test_scores, normal_scores, test_labels, dilation_window, topk=1)
 
         print('=========================** Result **============================\n')
 
@@ -208,6 +209,9 @@ class Main():
             info = top1_best_info
         elif self.env_config['report'] == 'val':
             info = top1_val_info
+        elif self.env_config['report'] == 'origin':
+            info = top1_recon_info
+            threshold = top1_recon_info[-1]
 
         print(f'F1 score: {info[0]}')
         print(f'Precision: {info[1]}')
@@ -221,7 +225,7 @@ class Main():
             writer.writerow(['F1', 'Precision', 'Recall', 'Accuracy', 'AUC'])
             writer.writerow([info[0], info[1], info[2], info[3], info[4]])
 
-        fig_path = f'./fig/{self.env_config["save_path"]}/total_anomaly.png'
+        fig_path = f'./fig/{self.env_config["save_path"]}/{self.train_config["model_type"]}/total_anomaly.png'
         Path(os.path.dirname(fig_path)).mkdir(parents=True, exist_ok=True)
         self.plot_anomaly_scores_with_threshold(test_scores, threshold, save_path=fig_path)
 

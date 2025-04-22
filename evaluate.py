@@ -107,7 +107,7 @@ def dilate_anomaly(preds, window=5):
     return preds
 
 
-def get_val_performance_data(total_err_scores, normal_scores, gt_labels, threshold, dilation_window, topk=1):
+def get_val_performance_data(total_err_scores, normal_scores, gt_labels, dilation_window, topk=1, threshold=None):
     total_features = total_err_scores.shape[0]
 
     topk_indices = np.argpartition(total_err_scores, range(total_features-topk-1, total_features), axis=0)[-topk:]
@@ -117,11 +117,15 @@ def get_val_performance_data(total_err_scores, normal_scores, gt_labels, thresho
 
     total_topk_err_scores = np.sum(np.take_along_axis(total_err_scores, topk_indices, axis=0), axis=0)
 
-    # thresold = np.max(normal_scores)
-    print("Validation threshold:", threshold)
+    if threshold:
+        pred_labels = np.zeros(len(total_topk_err_scores))
+        pred_labels[total_topk_err_scores > threshold] = 1
+    else:
+        threshold = np.max(normal_scores)
+        pred_labels = np.zeros(len(total_topk_err_scores))
+        pred_labels[total_topk_err_scores > threshold] = 1
 
-    pred_labels = np.zeros(len(total_topk_err_scores))
-    pred_labels[total_topk_err_scores > threshold] = 1
+    print("Validation threshold:", threshold)
 
     # pred_labels = dilate_anomaly(pred_labels, window=dilation_window)
 
@@ -133,8 +137,6 @@ def get_val_performance_data(total_err_scores, normal_scores, gt_labels, thresho
     rec = recall_score(gt_labels, pred_labels)
     acc = accuracy_score(gt_labels, pred_labels)
     f1 = f1_score(gt_labels, pred_labels)
-
-
     auc_score = roc_auc_score(gt_labels, total_topk_err_scores)
 
     return f1, pre, rec, acc, auc_score, threshold
@@ -169,7 +171,6 @@ def get_best_performance_data(total_err_scores, gt_labels, dilation_window, topk
     pre = precision_score(gt_labels, pred_labels)
     rec = recall_score(gt_labels, pred_labels)
     acc = accuracy_score(gt_labels, pred_labels)
-
     auc_score = roc_auc_score(gt_labels, total_topk_err_scores)
 
     return max(final_topk_fmeas), pre, rec, acc, auc_score, thresold

@@ -34,10 +34,10 @@ OUT_DIR="./results/${DATASET}_${MODEL}_seeds"
 mkdir -p $OUT_DIR
 
 EPOCH=50
-report='val'
+report='origin'
 
 pids=()
-for seed in $(seq 1 10); do
+for seed in $(seq 33 43); do
     (
     echo "Running seed $seed..."
 

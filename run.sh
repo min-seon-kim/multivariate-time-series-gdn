@@ -31,7 +31,7 @@ elif [ "$DATASET" == "swat" ]; then
 fi
 
 EPOCH=50
-report='val'
+report='origin'
 
 if [[ "$gpu_n" == "cpu" ]]; then
     python main.py \
