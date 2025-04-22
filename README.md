@@ -12,9 +12,8 @@
 ST-GDN extends the original GDN by integrating a **temporal self-attention mechanism**, allowing the model to adaptively focus on important time steps in the past when detecting deviations.
 
 The updated representative vector in sensor _i_ at time step _t_, is computed as:
-![image](https://github.com/user-attachments/assets/98928515-5ead-4cac-813d-272570285064)
-![image](https://github.com/user-attachments/assets/25287d18-9ce0-4c07-b4c9-5dc3d1d980c3)
-![image](https://github.com/user-attachments/assets/9be0f70e-a5d7-4438-bf56-840e8f741240)
+![image](https://github.com/user-attachments/assets/e56038a1-8f00-471a-b8d5-9999a615cd73)
+
 
 ### Run
 ```
