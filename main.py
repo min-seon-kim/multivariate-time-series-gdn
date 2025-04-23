@@ -114,7 +114,6 @@ class Main():
             ).to(self.device)
 
 
-
     def run(self):
 
         if len(self.env_config['load_model_path']) > 0:
@@ -142,6 +141,7 @@ class Main():
         _, self.adj_result = test_model(best_model, self.adj_dataloader)
 
         self.get_score(self.test_result, self.val_result, self.adj_result, self.train_config['slide_win'])
+
 
     def get_loaders(self, train_dataset, seed, batch, val_ratio=0.1):
         dataset_len = int(len(train_dataset))
@@ -195,12 +195,16 @@ class Main():
     
         test_scores, normal_scores = get_full_err_scores(test_result, val_result)
 
-        top1_adj_info = get_best_performance_data(test_scores, adj_labels, dilation_window, topk=1)
-        threshold = top1_adj_info[-1]
-
-        top1_best_info = get_best_performance_data(test_scores, test_labels, dilation_window, topk=1) 
-        top1_val_info = get_val_performance_data(test_scores, normal_scores, test_labels, dilation_window, topk=1, threshold=threshold)
-        top1_recon_info = get_val_performance_data(test_scores, normal_scores, test_labels, dilation_window, topk=1)
+        if self.env_config['report'] == 'val':
+            top1_adj_info = get_best_performance_data(test_scores, adj_labels, dilation_window, topk=1)
+            threshold = top1_adj_info[-1]
+        
+        if self.env_config['report'] == 'val':
+            top1_val_info = get_val_performance_data(test_scores, normal_scores, test_labels, dilation_window, topk=1, threshold=threshold)
+        elif self.env_config['report'] == 'origin':
+            top1_val_info = get_val_performance_data(test_scores, normal_scores, test_labels, dilation_window, topk=1)
+        elif self.env_config['report'] == 'best':
+            top1_best_info = get_best_performance_data(test_scores, test_labels, dilation_window, topk=1) 
 
         print('=========================** Result **============================\n')
 
@@ -210,8 +214,8 @@ class Main():
         elif self.env_config['report'] == 'val':
             info = top1_val_info
         elif self.env_config['report'] == 'origin':
-            info = top1_recon_info
-            threshold = top1_recon_info[-1]
+            info = top1_val_info
+            threshold = top1_val_info[-1]
 
         print(f'F1 score: {info[0]}')
         print(f'Precision: {info[1]}')
@@ -249,6 +253,7 @@ class Main():
             Path(dirname).mkdir(parents=True, exist_ok=True)
 
         return paths
+
 
 if __name__ == "__main__":
 

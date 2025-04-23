@@ -23,7 +23,6 @@ if [ "$DATASET" == "wadi" ]; then
     dim=128
     topk=30
     out_layer_inter_dim=128
-    SLIDE_WIN=10
 elif [ "$DATASET" == "swat" ]; then
     dim=64
     topk=15
