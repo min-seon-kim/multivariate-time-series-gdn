@@ -1,3 +1,4 @@
+# Here, instead of adding temporal information element-wise to the node representation vector, I directly concatenate it with the input of the existing FCN layer.
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
@@ -33,10 +34,10 @@ class OutLayer(nn.Module):
         for i in range(layer_num):
             # last layer, output shape:1
             if i == layer_num-1:
-                modules.append(nn.Linear(in_num if layer_num == 1 else inter_num, 1))
+                modules.append(nn.Linear( in_num if layer_num == 1 else inter_num, 1))
             else:
                 layer_in_num = in_num if i == 0 else inter_num
-                modules.append(nn.Linear(layer_in_num, inter_num))
+                modules.append(nn.Linear( layer_in_num, inter_num ))
                 modules.append(nn.BatchNorm1d(inter_num))
                 modules.append(nn.ReLU())
 
@@ -57,16 +58,16 @@ class OutLayer(nn.Module):
 
 
 class GNNLayer(nn.Module):
-    def __init__(self, in_channel, out_channel, embed_dim, inter_dim=0, heads=1, node_num=100, model_type="GDN"):
+    def __init__(self, in_channel, out_channel, inter_dim=0, heads=1, node_num=100, model_type="GDN"):
         super(GNNLayer, self).__init__()
 
 
-        self.gnn = GraphLayer(in_channel, out_channel, embed_dim, node_num, inter_dim=inter_dim, heads=heads, concat=False, model_type=model_type)
+        self.gnn = GraphLayer(in_channel, out_channel, node_num, inter_dim=inter_dim, heads=heads, concat=False, model_type=model_type)
         
         if model_type == "GDN":
             self.bn = nn.BatchNorm1d(out_channel)
         else:
-            self.bn = nn.BatchNorm1d(out_channel*2)
+            self.bn = nn.BatchNorm1d(out_channel)
         self.relu = nn.ReLU()
         self.leaky_relu = nn.LeakyReLU()
 
@@ -99,9 +100,10 @@ class GNNLayer(nn.Module):
                 
                 temporal_out = temporal_out.unsqueeze(1).repeat(1, node_num, 1).view(batch_num * node_num, d)
                 
-                out = torch.cat([out, temporal_out], dim=-1)
+                # out = torch.cat([out, temporal_out], dim=-1)
 
                 out = F.relu(out)
+                temporal_out = F.relu(temporal_out)
             else:
                 out = F.relu(out)
         else:
@@ -109,8 +111,9 @@ class GNNLayer(nn.Module):
                 raise ValueError("Choose model_type between [GDN/STGDN]")
 
         out = self.bn(out)
+        temporal_out = self.bn(temporal_out)
         
-        return self.relu(out)
+        return self.relu(out), self.relu(temporal_out)
 
 
 class GDN(nn.Module):
@@ -128,15 +131,15 @@ class GDN(nn.Module):
         if model_type == "GDN":
             embed_dim = dim
         else:
-            embed_dim = dim*2
+            embed_dim = dim
 
         self.embedding = nn.Embedding(node_num, embed_dim)
-        self.bn_outlayer_in = nn.BatchNorm1d(embed_dim)
+        self.bn_outlayer_in = nn.BatchNorm1d(embed_dim*2)
 
 
         edge_set_num = len(edge_index_sets)
         self.gnn_layers = nn.ModuleList([
-            GNNLayer(input_dim, dim, embed_dim, inter_dim=dim+embed_dim, heads=1, node_num=node_num, model_type=model_type) for i in range(edge_set_num)
+            GNNLayer(input_dim, dim, inter_dim=dim+embed_dim, heads=1, node_num=node_num, model_type=model_type) for i in range(edge_set_num)
         ])
 
 
@@ -184,6 +187,7 @@ class GDN(nn.Module):
         time_edge_index = get_batch_edge_index(gated_edge_index, batch_num, all_feature).to(device)
 
         gcn_outs = []
+        tcn_outs = []
         for i, edge_index in enumerate(edge_index_sets):
             edge_num = edge_index.shape[1]
             cache_edge_index = self.cache_edge_index_sets[i]
@@ -217,17 +221,22 @@ class GDN(nn.Module):
 
             batch_gated_edge_index = get_batch_edge_index(gated_edge_index, batch_num, node_num).to(device)
             
-            gcn_out = self.gnn_layers[i](x, batch_gated_edge_index, node_num=node_num*batch_num, embedding=all_embeddings, temporal_x=temporal_x, time_edge_index=time_edge_index, model_type=self.model_type)
+            gcn_out, tcn_out = self.gnn_layers[i](x, batch_gated_edge_index, node_num=node_num*batch_num, embedding=all_embeddings, temporal_x=temporal_x, time_edge_index=time_edge_index, model_type=self.model_type)
 
             
             gcn_outs.append(gcn_out)
+            tcn_outs.append(tcn_out)
 
         x = torch.cat(gcn_outs, dim=1)
         x = x.view(batch_num, node_num, -1)
 
+        tx = torch.cat(tcn_outs, dim=1)
+        tx = tx.view(batch_num, node_num, -1)
 
         indexes = torch.arange(0, node_num).to(device)
         out = torch.mul(x, self.embedding(indexes))
+
+        out = torch.cat([out, tx], dim=-1)
         
         out = out.permute(0,2,1)
         out = F.relu(self.bn_outlayer_in(out))

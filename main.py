@@ -166,8 +166,38 @@ class Main():
         return train_dataloader, val_dataloader
 
 
-    def plot_anomaly_scores_with_threshold(self, total_err_scores, threshold, save_path=None):
-        max_anomaly_scores = np.max(total_err_scores, axis=0)
+    def get_top_anomalies_as_dataframe(self, anomaly_score, columns, labels, detection, top_n=10):
+        """
+        :param anomaly_score: Anomaly scores, type: Pandas DataFrame (rows: timestamps, columns: sensors)
+        :param top_n: Number of top anomalies to extract, default is 5
+        :return: Pandas DataFrame with timestamp as index and top anomalies in 1~N columns
+        """
+        anomaly_score.columns = columns
+
+        results = []
+
+        for i, row in anomaly_score.iterrows():
+            top_indices = row.sort_values(ascending=False).index[:top_n]
+            top_scores = row.sort_values(ascending=False).iloc[:top_n]
+
+            result_dict = {str(j + 1): f"{col}: {round(score, 3)}" for j, (col, score) in enumerate(zip(top_indices, top_scores))}
+            result_dict["timestamp"] = i
+            results.append(result_dict)
+
+        result_df = pd.DataFrame(results).set_index("timestamp")
+
+        additional_data = pd.DataFrame()
+        if labels is not None:
+            additional_data['ground truth label'] = labels
+        if detection is not None:
+            additional_data['model prediction'] = detection
+
+        result_df = pd.concat([additional_data, result_df], axis=1)
+
+        return result_df
+
+
+    def plot_anomaly_scores_with_threshold(self, max_anomaly_scores, threshold, save_path=None):
         time_steps = np.arange(len(max_anomaly_scores))
 
         plt.figure(figsize=(15, 5))
@@ -192,9 +222,14 @@ class Main():
 
         test_labels = np_test_result[2, :, 0].tolist()
         adj_labels = np_adj_result[2, :, 0].tolist()
+        # np.save('./test_labels.npy', test_labels)
     
         test_scores, normal_scores = get_full_err_scores(test_result, val_result)
+        ano_scores = np.array(test_scores).T
+        anomaly_df = pd.DataFrame(ano_scores)
 
+        # np.save('./test_scores.npy', test_scores)
+        
         if self.env_config['report'] == 'val':
             top1_adj_info = get_best_performance_data(test_scores, adj_labels, dilation_window, topk=1)
             threshold = top1_adj_info[-1]
@@ -231,8 +266,19 @@ class Main():
 
         fig_path = f'./fig/{self.env_config["save_path"]}/{self.train_config["model_type"]}/total_anomaly.png'
         Path(os.path.dirname(fig_path)).mkdir(parents=True, exist_ok=True)
-        self.plot_anomaly_scores_with_threshold(test_scores, threshold, save_path=fig_path)
+        
+        max_anomaly_scores = np.max(test_scores, axis=0)
+        self.plot_anomaly_scores_with_threshold(max_anomaly_scores, threshold, save_path=fig_path)
 
+        detection = [1 if score > threshold else 0 for score in max_anomaly_scores]
+        detection = detection[train_config['slide_win']:]
+
+        labels = test_labels[train_config['slide_win']:]
+
+        rca_csv = self.get_top_anomalies_as_dataframe(anomaly_df, self.feature_map, labels, detection, top_n=3)
+        csv_save_dir = f'./csv/{self.env_config["save_path"]}'
+        os.makedirs(csv_save_dir, exist_ok=True)
+        rca_csv.to_csv(f'./csv/{self.env_config["save_path"]}/test_result.csv')
 
     def get_save_path(self, feature_name=''):
 

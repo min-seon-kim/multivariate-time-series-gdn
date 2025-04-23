@@ -1,3 +1,4 @@
+# Here, instead of creating a single temporal graph for all sensors in each batch, I generated individual temporal graphs for each sensor within every batch.
 import numpy as np
 import torch
 import matplotlib.pyplot as plt

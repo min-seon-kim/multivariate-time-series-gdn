@@ -10,7 +10,7 @@ import math
 import torch.nn.init as init
 
 class GraphLayer(MessagePassing):
-    def __init__(self, in_channels, out_channels, node_num, heads=1, concat=True, model_type="GDN",
+    def __init__(self, in_channels, out_channels, embed_dim, node_num, heads=1, concat=True, model_type="GDN",
                  negative_slope=0.2, dropout=0, bias=True, inter_dim=-1,**kwargs):
         super(GraphLayer, self).__init__(aggr='add', **kwargs)
 
@@ -32,8 +32,8 @@ class GraphLayer(MessagePassing):
             self.att_em_i = Parameter(torch.Tensor(1, heads, out_channels))
             self.att_em_j = Parameter(torch.Tensor(1, heads, out_channels))
         else:
-            self.att_em_i = Parameter(torch.Tensor(1, heads, out_channels*2))
-            self.att_em_j = Parameter(torch.Tensor(1, heads, out_channels*2))
+            self.att_em_i = Parameter(torch.Tensor(1, heads, embed_dim))
+            self.att_em_j = Parameter(torch.Tensor(1, heads, embed_dim))
 
         self.temp_att_i = Parameter(torch.Tensor(1, heads, out_channels))
         self.temp_att_j = Parameter(torch.Tensor(1, heads, out_channels))

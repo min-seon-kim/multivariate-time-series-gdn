@@ -3,6 +3,7 @@ results/
 logs/
 runs/
 temp/
+csv/
 pretrained/
 data/wadi/*
 data/swat/*
@@ -10,4 +11,6 @@ scripts/*.csv
 run_copy.sh
 myenv/
 output*.log
+*.npy
+test_scores_labels.ipynb
 __pycache__
