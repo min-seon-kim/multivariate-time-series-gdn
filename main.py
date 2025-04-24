@@ -85,14 +85,14 @@ class Main():
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
 
-        adj_len = int(len(test_dataset))
-        adj_use_len = int(adj_len * 0.5)
-        indices = torch.arange(adj_len)
+        test_len = int(len(test_dataset))
+        adj_use_len = int(test_len * 0.5)
+        indices = torch.arange(test_len)
 
         adj_sub_indices = indices[:adj_use_len]
         adj_subset = Subset(test_dataset, adj_sub_indices)
 
-        test_sub_indices = indices[adj_use_len:]
+        test_sub_indices = indices[:]
         test_subset = Subset(test_dataset, test_sub_indices)
 
         self.adj_dataloader = DataLoader(adj_subset, batch_size=train_config['batch'],
@@ -278,7 +278,7 @@ class Main():
         rca_csv = self.get_top_anomalies_as_dataframe(anomaly_df, self.feature_map, labels, detection, top_n=3)
         csv_save_dir = f'./csv/{self.env_config["save_path"]}'
         os.makedirs(csv_save_dir, exist_ok=True)
-        rca_csv.to_csv(f'./csv/{self.env_config["save_path"]}/test_result.csv')
+        rca_csv.to_csv(f'./csv/{self.env_config["save_path"]}/test_result.csv', index=True, index_label="timestamp")
 
     def get_save_path(self, feature_name=''):
 
