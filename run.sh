@@ -29,7 +29,7 @@ elif [ "$DATASET" == "swat" ]; then
     out_layer_inter_dim=64
 fi
 
-EPOCH=50
+EPOCH=1
 report='origin'
 
 if [[ "$gpu_n" == "cpu" ]]; then

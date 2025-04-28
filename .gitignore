@@ -12,5 +12,6 @@ run_copy.sh
 myenv/
 output*.log
 *.npy
+rca_match.ipynb
 test_scores_labels.ipynb
-__pycache__
+sensor_data_with_attack_and_point.csv

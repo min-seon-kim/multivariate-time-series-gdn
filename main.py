@@ -136,10 +136,19 @@ class Main():
         self.model.load_state_dict(torch.load(model_save_path))
         best_model = self.model.to(self.device)
 
-        _, self.test_result = test_model(best_model, self.test_dataloader)
-        _, self.val_result = test_model(best_model, self.val_dataloader)
-        _, self.adj_result = test_model(best_model, self.adj_dataloader)
+        _, self.test_result, attention = test_model(best_model, self.test_dataloader)
+        _, self.val_result, _ = test_model(best_model, self.val_dataloader)
+        _, self.adj_result, _ = test_model(best_model, self.adj_dataloader)
 
+        id_to_sensor_name = {i: name for i, name in enumerate(self.feature_map)}
+        source_sensor_names = [id_to_sensor_name[int(s) % len(self.feature_map)] for s in attention['source']]
+        target_sensor_names = [id_to_sensor_name[int(t) % len(self.feature_map)] for t in attention['target']]
+
+        attention['source'] = source_sensor_names
+        attention['target'] = target_sensor_names
+
+        attention.to_csv(f'./csv/{self.env_config["save_path"]}/attention_result.csv', index=False)
+        
         self.get_score(self.test_result, self.val_result, self.adj_result, self.train_config['slide_win'])
 
 
@@ -278,6 +287,7 @@ class Main():
         rca_csv = self.get_top_anomalies_as_dataframe(anomaly_df, self.feature_map, labels, detection, top_n=3)
         csv_save_dir = f'./csv/{self.env_config["save_path"]}'
         os.makedirs(csv_save_dir, exist_ok=True)
+        anomaly_df.to_csv(f'./csv/{self.env_config["save_path"]}/anomaly_score.csv', index=True, index_label="timestamp")
         rca_csv.to_csv(f'./csv/{self.env_config["save_path"]}/test_result.csv', index=True, index_label="timestamp")
 
     def get_save_path(self, feature_name=''):

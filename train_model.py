@@ -78,7 +78,8 @@ def train_model(model = None, save_path = '', config={},  train_dataloader=None,
             x, labels, edge_index = [item.float().to(device) for item in [x, labels, edge_index]]
 
             optimizer.zero_grad()
-            out = model(x, edge_index).float().to(device)
+            out, att_weight_, new_edge_index_ = model(x, edge_index)
+            out = out.float().to(device)
 
             if config['loss_func'] == "mse":
                 loss = loss_func(out, labels)
@@ -106,7 +107,7 @@ def train_model(model = None, save_path = '', config={},  train_dataloader=None,
         # use val dataset to judge
         if val_dataloader is not None:
 
-            val_loss, val_result = test_model(model, val_dataloader)
+            val_loss, val_result, _ = test_model(model, val_dataloader)
 
             if val_loss < min_loss:
                 torch.save(model.state_dict(), save_path)

@@ -110,7 +110,7 @@ class GNNLayer(nn.Module):
 
         out = self.bn(out)
         
-        return self.relu(out)
+        return self.relu(out), new_edge_index, att_weight
 
 
 class GDN(nn.Module):
@@ -184,6 +184,8 @@ class GDN(nn.Module):
         time_edge_index = get_batch_edge_index(gated_edge_index, batch_num, all_feature).to(device)
 
         gcn_outs = []
+        new_edge_index_list = []
+        att_weight_list = []
         for i, edge_index in enumerate(edge_index_sets):
             edge_num = edge_index.shape[1]
             cache_edge_index = self.cache_edge_index_sets[i]
@@ -217,15 +219,16 @@ class GDN(nn.Module):
 
             batch_gated_edge_index = get_batch_edge_index(gated_edge_index, batch_num, node_num).to(device)
             
-            gcn_out = self.gnn_layers[i](x, batch_gated_edge_index, node_num=node_num*batch_num, embedding=all_embeddings, temporal_x=temporal_x, time_edge_index=time_edge_index, model_type=self.model_type)
+            gcn_out, new_edge_index, att_weight = self.gnn_layers[i](x, batch_gated_edge_index, node_num=node_num*batch_num, embedding=all_embeddings, temporal_x=temporal_x, time_edge_index=time_edge_index, model_type=self.model_type)
+            new_edge_index_ = new_edge_index.detach().cpu()
+            att_weight_ = att_weight.detach().cpu()
 
-            
             gcn_outs.append(gcn_out)
 
         x = torch.cat(gcn_outs, dim=1)
+        # 24480 = 51 (노드 수) × 15 (topk 수) × 32 (배치 수)
         x = x.view(batch_num, node_num, -1)
-
-
+        
         indexes = torch.arange(0, node_num).to(device)
         out = torch.mul(x, self.embedding(indexes))
         
@@ -236,7 +239,7 @@ class GDN(nn.Module):
         out = self.dp(out)
         out = self.out_layer(out)
         out = out.view(-1, node_num)
-   
 
-        return out
+
+        return out, att_weight_, new_edge_index_
         
