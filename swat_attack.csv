@@ -35,4 +35,3 @@ Attack #,Start Time,End Time,Attack Point,Start State,Attack,Actual Change,Expec
 39,2016-01-02 11:43,2016-01-02 11:50,"FIT-401, AIT-502",In Normal Range,Set value of FIT-401 as 0.5; Set value of AIT-502 as 140 mV,No,UV will shut down and water will go to RO,UV did not shutdown
 40,2016-01-02 11:51,2016-01-02 11:56,FIT-401,In Normal Range,Set value of FIT-401 as 0,No,UV will shut down and water will go to RO,"P-402 did not close, both should be interlinked"
 41,2016-01-02 13:13,2016-01-02 13:40,LIT-301,Water level between L and H,decrease value by 0.5 mm per second,No,Tank overflow,Rate of decrease in water level reduced after 1:33:25 PM
-,,,,,,,,
